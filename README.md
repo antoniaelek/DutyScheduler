@@ -11,7 +11,7 @@ In `appsettings.json` file, change the `ConnectionStrings` block so that it mach
     "Postgres": "Host=localhost;Port=5433;Username=postgres;Password=postgres;Database=DutyScheduler"
   }
 ```
-> ### :warning: Do not change the `"Postgres"` key in the specified block, because it is referenced elsewhere in code.
+#### :warning: Do not change the `"Postgres"` key in the specified block, because it is referenced elsewhere in code.
 
 ### 3. Run migrations
 Open up powershell or cmd and `cd` into `\DutyScheduler\DutyScheduler.Service\src\DutyScheduler` directory. From there, run the following commands
@@ -21,9 +21,10 @@ dotnet ef migrations add <migration_name>
 dotnet ef database update
 ```
 
-> ### :exclamation: You'll have to repeat step 3 each time your models change, in order to have those model changes propagated in the database.
+#### :exclamation: You'll have to repeat step 3 each time your models change, in order to have those model changes propagated in the database.
 
 
 ### 4. Documentation
-When you run the application, docs will be avaliable at http://localhost:5000/swagger/ui/index.html.
-Document your API methods with xml comments and the docs will be generated and displayed at the specified URL. 
+When you run the application, docs will be avaliable at [http://localhost:5000/swagger/ui/index.html](http://localhost:5000/swagger/ui/index.html).
+
+Document your API methods with xml comments and the xml docs will be generated and displayed at the specified URL. 
