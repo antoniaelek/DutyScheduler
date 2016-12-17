@@ -9,10 +9,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using RandomPasswordGenerator.ViewModels;
 
 namespace DutyScheduler.Controllers 
 {
+    /// <summary>
+    /// User resource.
+    /// </summary>
     [Route("api/[controller]/")]
     public class UserController : Controller
     {
@@ -32,7 +34,11 @@ namespace DutyScheduler.Controllers
             builder.Build();
         }
 
-        // GET: api/User/{id}
+        /// <summary>
+        /// Get user with the specified <paramref name="id"/>.
+        /// </summary>
+        /// <param name="id">Unique identifier of the user.</param>
+        /// <returns>JSON user data.</returns>
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<JsonResult> Get(string id)
@@ -44,7 +50,11 @@ namespace DutyScheduler.Controllers
             });
         }
 
-        // POST: api/User
+        /// <summary>
+        /// Register.
+        /// </summary>
+        /// <param name="viewModel">User profile to be created.</param>
+        /// <returns>New user JSON data.</returns>
         [HttpPost]
         [AllowAnonymous]
         public async Task<JsonResult> Create([FromBody]RegisterViewModel viewModel)
@@ -76,7 +86,12 @@ namespace DutyScheduler.Controllers
             return ret;
         }
 
-        // PUT: api/User/{id}
+        /// <summary>
+        /// Update user with the specified <paramref name="id"/>.
+        /// </summary>
+        /// <param name="id">Unique identifier of the user.</param>
+        /// <param name="viewModel">New user data.</param>
+        /// <returns>JSON user data.</returns>
         [HttpPut("{id}")]
         [Authorize]
         public async Task<JsonResult> Update(string id, UpdateUserViewModel viewModel)
@@ -97,7 +112,11 @@ namespace DutyScheduler.Controllers
             });
         }
 
-        // DELETE api/User/{id}
+        /// <summary>
+        /// Delete user with the specified <paramref name="id"/>.
+        /// </summary>
+        /// <param name="id">Unique identifier of the user.</param>
+        /// <returns>HTTP status code indicating outcome of the delete operation.</returns>
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<JsonResult> Delete(string id)

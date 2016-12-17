@@ -39,7 +39,10 @@ namespace DutyScheduler.Controllers
         }
 
 
-        // DELETE api/Login
+        /// <summary>
+        /// Logout.
+        /// </summary>
+        /// <returns>>HTTP status code indicating outcome of the operation.</returns>
         [HttpDelete]
         [Authorize]
         public async Task Logout()
@@ -48,7 +51,11 @@ namespace DutyScheduler.Controllers
         }
 
 
-        // POST: api/Login
+        /// <summary>
+        /// Login.
+        /// </summary>
+        /// <param name="viewModel">User to login.</param>
+        /// <returns>>HTTP status code and message indicating outcome of the operation.</returns>
         [HttpPost]
         [AllowAnonymous]
         public async Task<JsonResult> Login([FromBody]LoginViewModel viewModel)

@@ -78,7 +78,6 @@ namespace DutyScheduler
                 options.AddPolicy("AllowNeeded",
                     builder => {
                         builder
-                        //.WithOrigins("*")
                         .AllowCredentials();
                     });
             });
@@ -107,8 +106,6 @@ namespace DutyScheduler
             app.UseStaticFiles();
 
             app.UseIdentity().UseCookieAuthentication();
-
-            //app.UseCors("AllowNeeded");
 
             app.UseMvc(routes =>
             {

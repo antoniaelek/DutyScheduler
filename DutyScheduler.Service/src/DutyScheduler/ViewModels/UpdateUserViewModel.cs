@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace RandomPasswordGenerator.ViewModels
+namespace DutyScheduler.ViewModels
 {
     public class UpdateUserViewModel
     {
