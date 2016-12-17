@@ -1,6 +1,8 @@
 {
   "title": "DutyScheduler",
   "dependencies": {
+    "Swashbuckle.SwaggerGen": "6.0.0-beta901",
+    "Swashbuckle.SwaggerUi": "6.0.0-beta901",
     "MailKit": "1.4.1",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
     "Microsoft.AspNetCore.Identity": "1.0.0",
@@ -57,7 +59,8 @@
         "wwwroot",
         "node_modules"
       ]
-    }
+    },
+    "xmlDoc": true
   },
 
   "runtimeOptions": {

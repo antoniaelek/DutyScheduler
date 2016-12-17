@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DutyScheduler.Helpers;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using RandomPasswordGenerator.ViewModels;
 
 namespace DutyScheduler.Controllers 
@@ -20,25 +18,18 @@ namespace DutyScheduler.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
-        private IConfigurationRoot _configuration;
 
         public UserController(ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            ILoggerFactory loggerFactory,
             IHostingEnvironment env)
         {
             _context = context;
             _userManager = userManager;
-            _signInManager = signInManager;
-            _logger = loggerFactory.CreateLogger<UserController>();
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            _configuration = builder.Build();
+            builder.Build();
         }
 
         // GET: api/User/{id}
@@ -49,12 +40,7 @@ namespace DutyScheduler.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == id);
             return new JsonResult(new
             {
-                Success = true,
-                Id = user.Id,
-                UserName = user.UserName,
-                Name = user.Name,
-                Email = user.Email,
-                DateCreated = user.DateCreated
+                Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
             });
         }
 
@@ -77,12 +63,7 @@ namespace DutyScheduler.Controllers
                 if (result.Succeeded)
                 {
                     return new JsonResult(new {
-                        Success = true,
-                        Id = user.Id,
-                        UserName = user.UserName,
-                        Name = user.Name,
-                        Email = user.Email,
-                        DateCreated = user.DateCreated,
+                        Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
                     });
                 }
             
@@ -112,12 +93,7 @@ namespace DutyScheduler.Controllers
 
             return new JsonResult(new
             {
-                Success = true,
-                Id = user.Id,
-                UserName = user.UserName,
-                Name = user.Name,
-                Email = user.Email,
-                DateCreated = user.DateCreated
+                Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
             });
         }
 

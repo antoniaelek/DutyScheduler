@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.Swagger.Model;
 
 namespace DutyScheduler
 {
@@ -33,8 +34,24 @@ namespace DutyScheduler
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var pathToDoc = Configuration["Swagger:Path"];
+
             // Add framework services.
             services.AddMvc();
+
+            services.AddSwaggerGen();
+            services.ConfigureSwaggerGen(options =>
+            {
+                options.SingleApiVersion(new Info
+                {
+                    Version = "v1",
+                    Title = "Duty Scheduler API",
+                    Description = "Duty Scheduler API",
+                    TermsOfService = "None"
+                });
+                options.IncludeXmlComments(pathToDoc);
+                options.DescribeAllEnumsAsStrings();
+            });
 
             // Use a PostgreSQL database
             var sqlConnectionString = Configuration.GetConnectionString("Postgres");
@@ -99,6 +116,8 @@ namespace DutyScheduler
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+            app.UseSwagger();
+            app.UseSwaggerUi();
         }
     }
 }
