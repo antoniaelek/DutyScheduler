@@ -35,15 +35,15 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Get user with the specified <paramref name="id"/>.
+        /// Get user with the specified <paramref name="username"/>.
         /// </summary>
-        /// <param name="id">Unique identifier of the user.</param>
+        /// <param name="username">Unique identifier of the user.</param>
         /// <returns>JSON user data.</returns>
-        [HttpGet("{id}")]
+        [HttpGet("{username}")]
         [AllowAnonymous]
-        public async Task<JsonResult> Get(string id)
+        public async Task<JsonResult> Get(string username)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == id);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             return new JsonResult(new
             {
                 Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
@@ -87,16 +87,16 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Update user with the specified <paramref name="id"/>.
+        /// Update user with the specified <paramref name="username"/>.
         /// </summary>
-        /// <param name="id">Unique identifier of the user.</param>
+        /// <param name="username">Unique identifier of the user.</param>
         /// <param name="viewModel">New user data.</param>
         /// <returns>JSON user data.</returns>
-        [HttpPut("{id}")]
+        [HttpPut("{username}")]
         [Authorize]
-        public async Task<JsonResult> Update(string id, UpdateUserViewModel viewModel)
+        public async Task<JsonResult> Update(string username, [FromBody][Bind("Name")]UpdateUserViewModel viewModel)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == id);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 404.ErrorStatusCode();
 
             var isAuthorized = await CheckUserAuthorized(user.UserName);
@@ -113,15 +113,15 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Delete user with the specified <paramref name="id"/>.
+        /// Delete user with the specified <paramref name="username"/>.
         /// </summary>
-        /// <param name="id">Unique identifier of the user.</param>
+        /// <param name="username">Unique identifier of the user.</param>
         /// <returns>HTTP status code indicating outcome of the delete operation.</returns>
-        [HttpDelete("{id}")]
+        [HttpDelete("{username}")]
         [Authorize]
-        public async Task<JsonResult> Delete(string id)
+        public async Task<JsonResult> Delete(string username)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == id);
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 404.ErrorStatusCode();
 
             var isAuthorized = await CheckUserAuthorized(user.UserName);
@@ -138,7 +138,7 @@ namespace DutyScheduler.Controllers
             var user = await _userManager.GetUser(User.Identity.Name);
             if (user == null) return 401.ErrorStatusCode();
 
-            // This user is not the one with the specified id
+            // This user is not the one with the specified username
             if (user.UserName != id) return 401.ErrorStatusCode();
             return 200.SuccessStatusCode();
         }
