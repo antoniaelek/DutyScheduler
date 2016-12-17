@@ -92,10 +92,10 @@ namespace DutyScheduler.Controllers
                     return new JsonResult(new
                     {
                         Success = true,
-                        Id = user.Id,
-                        Name = user.Name,
-                        Email = user.Email,
-                        DateCreated = user.DateCreated,
+                        Username = user.UserName,
+                        user.Name,
+                        user.Email,
+                        user.DateCreated
                     });
                 }
             }

@@ -16,6 +16,7 @@ namespace DutyScheduler.Controllers
     /// User resource.
     /// </summary>
     [Route("api/[controller]/")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -72,8 +73,13 @@ namespace DutyScheduler.Controllers
 
                 if (result.Succeeded)
                 {
-                    return new JsonResult(new {
-                        Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
+                    return new JsonResult(new
+                    {
+                        Success = true,
+                        Username = user.UserName,
+                        user.Name,
+                        user.Email,
+                        user.DateCreated
                     });
                 }
             
@@ -99,8 +105,12 @@ namespace DutyScheduler.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 404.ErrorStatusCode();
 
-            var isAuthorized = await CheckUserAuthorized(user.UserName);
-            if (isAuthorized.StatusCode != 200) return 401.ErrorStatusCode();
+            var isAuthorized = await CheckUserCredentials(user.UserName);
+            if (isAuthorized.StatusCode != 200 && isAuthorized.StatusCode.HasValue)
+                return isAuthorized.StatusCode.Value.ErrorStatusCode();
+
+            if (isAuthorized.StatusCode != 200)
+                return 400.ErrorStatusCode();
 
             user.Name = viewModel.Name;
             _context.Users.Update(user);
@@ -108,7 +118,11 @@ namespace DutyScheduler.Controllers
 
             return new JsonResult(new
             {
-                Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
+                Success = true,
+                Username = user.UserName,
+                user.Name,
+                user.Email,
+                user.DateCreated
             });
         }
 
@@ -122,24 +136,28 @@ namespace DutyScheduler.Controllers
         public async Task<JsonResult> Delete(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
-            if (user == null) return 404.ErrorStatusCode();
+            if (user == null) return 401.ErrorStatusCode();
 
-            var isAuthorized = await CheckUserAuthorized(user.UserName);
-            if (isAuthorized.StatusCode != 200) return 401.ErrorStatusCode();
+            var isAuthorized = await CheckUserCredentials(user.UserName);
+
+            if (isAuthorized.StatusCode != 200 && isAuthorized.StatusCode.HasValue)
+                return isAuthorized.StatusCode.Value.ErrorStatusCode();
+
+            if (isAuthorized.StatusCode != 200)
+                return 400.ErrorStatusCode();
 
             await _userManager.DeleteAsync(user);
             return 200.SuccessStatusCode();
         }
 
-        private async Task<JsonResult> CheckUserAuthorized(string id)
+        private async Task<JsonResult> CheckUserCredentials(string id)
         {
-            
             // User null, how did we even get past the Authorize attribute?
             var user = await _userManager.GetUser(User.Identity.Name);
             if (user == null) return 401.ErrorStatusCode();
 
-            // This user is not the one with the specified username
-            if (user.UserName != id) return 401.ErrorStatusCode();
+            // This user does not have enough rights
+            if (user.UserName != id) return 403.ErrorStatusCode();
             return 200.SuccessStatusCode();
         }
     }
