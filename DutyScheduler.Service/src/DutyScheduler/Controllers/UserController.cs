@@ -45,9 +45,17 @@ namespace DutyScheduler.Controllers
         public async Task<JsonResult> Get(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
+            if (user == null) return 404.ErrorStatusCode();
             return new JsonResult(new
             {
-                Success = true, user.Id, user.UserName, user.Name, user.Email, user.DateCreated
+                Success = true, user.Id,
+                user.UserName,
+                user.Name,
+                user.LastName,
+                user.Email,
+                user.Office,
+                user.Phone,
+                user.DateCreated
             });
         }
 
@@ -66,7 +74,10 @@ namespace DutyScheduler.Controllers
                 {
                     UserName = viewModel.UserName,
                     Email = viewModel.Email,
-                    Name = viewModel.Name
+                    Name = viewModel.Name,
+                    LastName = viewModel.LastName,
+                    Office = viewModel.Office,
+                    Phone = viewModel.Phone
                 };
 
                 var result = await _userManager.CreateAsync(user, viewModel.Password);
@@ -78,7 +89,10 @@ namespace DutyScheduler.Controllers
                         Success = true,
                         Username = user.UserName,
                         user.Name,
+                        user.LastName,
                         user.Email,
+                        user.Office,
+                        user.Phone,
                         user.DateCreated
                     });
                 }
@@ -100,7 +114,7 @@ namespace DutyScheduler.Controllers
         /// <returns>JSON user data.</returns>
         [HttpPut("{username}")]
         [Authorize]
-        public async Task<JsonResult> Update(string username, [FromBody][Bind("Name")]UpdateUserViewModel viewModel)
+        public async Task<JsonResult> Update(string username, [FromBody]UpdateUserViewModel viewModel)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 404.ErrorStatusCode();
@@ -112,7 +126,11 @@ namespace DutyScheduler.Controllers
             if (isAuthorized.StatusCode != 200)
                 return 400.ErrorStatusCode();
 
-            user.Name = viewModel.Name;
+            if (viewModel.Name != null) user.Name = viewModel.Name;
+            if (viewModel.LastName != null) user.LastName = viewModel.LastName;
+            if (viewModel.Office != null) user.Office = viewModel.Office;
+            if (viewModel.Phone != null) user.Phone = viewModel.Phone;
+
             _context.Users.Update(user);
             _context.SaveChanges();
 
@@ -121,7 +139,10 @@ namespace DutyScheduler.Controllers
                 Success = true,
                 Username = user.UserName,
                 user.Name,
+                user.LastName,
                 user.Email,
+                user.Phone,
+                user.Office,
                 user.DateCreated
             });
         }

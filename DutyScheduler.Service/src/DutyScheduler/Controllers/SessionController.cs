@@ -94,7 +94,10 @@ namespace DutyScheduler.Controllers
                         Success = true,
                         Username = user.UserName,
                         user.Name,
+                        user.LastName,
                         user.Email,
+                        user.Office,
+                        user.Phone,
                         user.DateCreated
                     });
                 }

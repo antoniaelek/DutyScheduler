@@ -8,6 +8,10 @@ namespace DutyScheduler.Models
     {
         public DateTime DateCreated { get; set; }
         public string Name { get; set; }
+        public string LastName { get; set; }
+        public bool IsAdmin { get; set; }
+        public string Office { get; set; }
+        public string Phone { get; set; }
         //public virtual ICollection<string> Emails { get; set; } 
 
         public ApplicationUser()

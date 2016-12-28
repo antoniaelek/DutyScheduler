@@ -8,6 +8,9 @@ namespace DutyScheduler.ViewModels
         public string Name { get; set; }
 
         [Required]
+        public string LastName { get; set; }
+
+        [Required]
         [Key]
         public string UserName { get; set; }
 
@@ -18,5 +21,11 @@ namespace DutyScheduler.ViewModels
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        [Required]
+        public string Office { get; set; }
+
+        [Required]
+        public string Phone { get; set; }
     }
 }
