@@ -1,7 +1,7 @@
 # Getting started guide
 
 ### 1. Crete new postgres database. 
-You can choose any database name, owner and server port you like, just don't forget to check that yur configuration settings from step 2 are correct.
+Use pgadmin or any other Postgre SQL database admimnistration tool. You can choose any database name, owner and server port you like, just don't forget to check that yur configuration settings from step 2 are correct.
 
 ### 2. Set connection string
 In `appsettings.json` file, change the `ConnectionStrings` block so that it maches your connection string.
@@ -14,7 +14,7 @@ In `appsettings.json` file, change the `ConnectionStrings` block so that it mach
 #### :warning: Do not change the `"Postgres"` key in the specified block, because it is referenced elsewhere in code.
 
 ### 3. Run migrations
-Open up powershell or cmd and `cd` into `\DutyScheduler\DutyScheduler.Service\src\DutyScheduler` directory. From there, run the following commands
+Open up powershell or cmd and `cd` into `DutyScheduler\DutyScheduler.Service\src\DutyScheduler` directory. From there, run the following commands
 
 ```
 dotnet ef migrations add <migration_name>
