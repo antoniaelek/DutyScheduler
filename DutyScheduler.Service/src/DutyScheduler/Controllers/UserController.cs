@@ -98,8 +98,8 @@ namespace DutyScheduler.Controllers
             }
             if (!ModelState.Keys.Any()) 
                 ModelState.AddModelError("Email","There already exists an account with that email.");
-            //var allErrors = ModelState.ValidationErrors();
-            var ret = new JsonResult(new { Success = false/*, Verbose = allErrors*/});
+            var allErrors = ModelState.ValidationErrors();
+            var ret = new JsonResult(new { Success = false, Errors = allErrors});
             ret.StatusCode = 400;
             return ret;
         }

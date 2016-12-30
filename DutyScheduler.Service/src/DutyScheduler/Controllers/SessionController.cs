@@ -107,7 +107,7 @@ namespace DutyScheduler.Controllers
                 ModelState.AddModelError("Email","Invalid email or password.");
             }
             var allErrors = ModelState.ValidationErrors();
-            var ret = new JsonResult(new { Success = false, Verbose = allErrors });
+            var ret = new JsonResult(new { Success = false, Errors = allErrors });
             ret.StatusCode = 400;
             return ret;
         }
