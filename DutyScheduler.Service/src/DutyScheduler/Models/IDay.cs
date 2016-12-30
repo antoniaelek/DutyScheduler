@@ -6,5 +6,8 @@ namespace DutyScheduler.Models
     {
         DateTime Date { get; }
         string Name { get; }
+        string Type { get; }
+        string Scheduled { get; set; }
+        bool IsReplaceable { get; set; }
     }
 }

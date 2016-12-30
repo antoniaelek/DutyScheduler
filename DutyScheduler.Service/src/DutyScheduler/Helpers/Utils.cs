@@ -26,22 +26,34 @@ namespace DutyScheduler.Helpers
             return allErrors;
         }
 
-        public static JsonResult ErrorStatusCode(this int status)
+        public static JsonResult ErrorStatusCode(this int status, params KeyValuePair<string, string>[] messages)
         {
             var ret = new JsonResult(new
             {
                 Success = false
             });
+
+            if (messages != default(KeyValuePair<string,string>[]))
+            {
+                ret = new JsonResult(new { messages });
+            }
+
             ret.StatusCode = status;
             return ret;
         }
 
-        public static JsonResult SuccessStatusCode(this int status)
+        public static JsonResult SuccessStatusCode(this int status, params KeyValuePair<string, string>[] messages)
         {
             var ret = new JsonResult(new
             {
                 Success = true
             });
+
+            if (messages != default(KeyValuePair<string, string>[]))
+            {
+                ret = new JsonResult(new { messages });
+            }
+
             ret.StatusCode = status;
             return ret;
         }
