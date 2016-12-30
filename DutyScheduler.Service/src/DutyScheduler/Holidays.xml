@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Holidays>
+	<Holiday name="New Year's Day">
+		<Month>1</Month>
+		<Day>1</Day>
+	</Holiday>
+	<Holiday name="Epiphany">
+		<Month>1</Month>
+		<Day>6</Day>
+	</Holiday>
+	<Holiday name="Easter">
+		<Easter />
+	</Holiday>
+	<Holiday name="Easter Monday">
+		<DaysAfterHoliday Holiday="Easter">
+			<Days>1</Days>
+		</DaysAfterHoliday>
+	</Holiday>
+	<Holiday name="Corpus Christi">
+		<DaysAfterHoliday Holiday="Easter">
+			<Days>60</Days>
+		</DaysAfterHoliday>
+	</Holiday>
+	<Holiday name="Labour Day">
+		<Month>5</Month>
+		<Day>1</Day>
+	</Holiday>
+	<Holiday name="Croatian Uprising Day">
+		<Month>6</Month>
+		<Day>22</Day>
+	</Holiday>
+	<Holiday name="Statehood Day">
+		<Month>6</Month>
+		<Day>25</Day>
+	</Holiday>
+	<Holiday name="Homeland Thanksgiving day">
+		<Month>8</Month>
+		<Day>5</Day>
+	</Holiday>
+	<Holiday name="Assumption">
+		<Month>8</Month>
+		<Day>15</Day>
+	</Holiday>
+	<Holiday name="Independence Day">
+		<Month>10</Month>
+		<Day>8</Day>
+	</Holiday>
+		<Holiday name="All Saint's Day">
+		<Month>11</Month>
+		<Day>1</Day>
+	</Holiday>
+	<Holiday name="Christmas Day">
+		<Month>12</Month>
+		<Day>25</Day>
+	</Holiday>
+	<Holiday name="St. Stephen's Day">
+		<Month>12</Month>
+		<Day>26</Day>
+	</Holiday>
+</Holidays>
+
+

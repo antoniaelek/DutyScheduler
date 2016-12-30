@@ -2,11 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using ModelBuilder = Microsoft.EntityFrameworkCore.ModelBuilder;
-using DeleteBehavior = Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior;
 
 namespace DutyScheduler.Models
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<User>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -22,7 +21,11 @@ namespace DutyScheduler.Models
             // Add your customizations after calling base.OnModelCreating(builder);
 
             builder.HasPostgresExtension("uuid-ossp");
+            //builder.Entity<User>().HasMany(u => u.Preferences).WithOne(p => p.User);//.OnDelete(DeleteBehavior.SetNull);
         }
-
+        public DbSet<Preference> Preference { get; set; }
+        public DbSet<ReplacementHistory> ReplacementHistory { get; set; }
+        public DbSet<ReplacementRequest> ReplacementRequest { get; set; }
+        public DbSet<Shift> Shift { get; set; }
     }
 }

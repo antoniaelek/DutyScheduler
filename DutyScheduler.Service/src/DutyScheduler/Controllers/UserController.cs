@@ -20,10 +20,10 @@ namespace DutyScheduler.Controllers
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<User> _userManager;
 
         public UserController(ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager,
+            UserManager<User> userManager,
             IHostingEnvironment env)
         {
             _context = context;
@@ -54,8 +54,7 @@ namespace DutyScheduler.Controllers
                 user.LastName,
                 user.Email,
                 user.Office,
-                user.Phone,
-                user.DateCreated
+                user.Phone
             });
         }
 
@@ -70,7 +69,7 @@ namespace DutyScheduler.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser
+                var user = new User
                 {
                     UserName = viewModel.UserName,
                     Email = viewModel.Email,
@@ -92,8 +91,7 @@ namespace DutyScheduler.Controllers
                         user.LastName,
                         user.Email,
                         user.Office,
-                        user.Phone,
-                        user.DateCreated
+                        user.Phone
                     });
                 }
             
@@ -142,8 +140,7 @@ namespace DutyScheduler.Controllers
                 user.LastName,
                 user.Email,
                 user.Phone,
-                user.Office,
-                user.DateCreated
+                user.Office
             });
         }
 

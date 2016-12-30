@@ -16,14 +16,14 @@ namespace DutyScheduler.Controllers
     public class SessionController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private IConfigurationRoot _configuration;
 
         public SessionController(ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             ILoggerFactory loggerFactory,
             IHostingEnvironment env)
         {
@@ -71,7 +71,7 @@ namespace DutyScheduler.Controllers
             }
             if (ModelState.IsValid)
             {
-                ApplicationUser user = null;
+                User user = null;
                 if (viewModel.Email != null) 
                 {
                     user = await _userManager.FindByEmailAsync(viewModel.Email);
@@ -97,8 +97,7 @@ namespace DutyScheduler.Controllers
                         user.LastName,
                         user.Email,
                         user.Office,
-                        user.Phone,
-                        user.DateCreated
+                        user.Phone
                     });
                 }
             }
