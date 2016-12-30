@@ -12,6 +12,10 @@ namespace DutyScheduler.Controllers
     [Route("api/[controller]")]
     public class CalendarController : Controller
     {
+        /// <summary>
+        /// Gets the calendar for the current month.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public ActionResult Get()
         {
@@ -19,11 +23,22 @@ namespace DutyScheduler.Controllers
             return DaysToJson(days);
         }
 
+        /// <summary>
+        /// Gets the calendar for the specified month and year.
+        /// </summary>
+        /// <param name="year">Year</param>
+        /// <param name="month">Month</param>
+        /// <returns></returns>
         [HttpGet("year={year}&month={month}")]
         public ActionResult Get(int year, int month)
         {
             if (month < 1 || month > 12)
-                return 404.ErrorStatusCode(new KeyValuePair<string, string>("month", "month must be a value between 1 and 12"));
+            {
+                var dict = new Dictionary<string, string>();
+                dict.Add("month", "month must be a value between 1 and 12");
+                if (year < 0) dict.Add("year", "year must be a value greater than 0");
+                return 404.ErrorStatusCode(dict);
+            }
             var days = GetMonth(new Month(new DateTime(year, month, 1)));
             return DaysToJson(days);
         }
@@ -33,7 +48,7 @@ namespace DutyScheduler.Controllers
             return new JsonResult(days.Select(d => new ViewModels.DayViewModel()
             {
                 Type = d.Type,
-                Date = d.Date.ToString("d"),
+                Date = d.Date.ToString("d.M.yyyy"),
                 Name = d.Name,
                 Scheduled = d.Scheduled,
                 IsReplaceable = d.IsReplaceable

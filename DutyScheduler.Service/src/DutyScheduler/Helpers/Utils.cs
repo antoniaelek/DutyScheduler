@@ -26,14 +26,14 @@ namespace DutyScheduler.Helpers
             return allErrors;
         }
 
-        public static JsonResult ErrorStatusCode(this int status, params KeyValuePair<string, string>[] messages)
+        public static JsonResult ErrorStatusCode(this int status, Dictionary<string, string> messages = null)
         {
             var ret = new JsonResult(new
             {
                 Success = false
             });
 
-            if (messages != default(KeyValuePair<string,string>[]))
+            if (messages != null)
             {
                 ret = new JsonResult(new { messages });
             }
@@ -42,14 +42,14 @@ namespace DutyScheduler.Helpers
             return ret;
         }
 
-        public static JsonResult SuccessStatusCode(this int status, params KeyValuePair<string, string>[] messages)
+        public static JsonResult SuccessStatusCode(this int status, Dictionary<string, string> messages = null)
         {
             var ret = new JsonResult(new
             {
                 Success = true
             });
 
-            if (messages != default(KeyValuePair<string, string>[]))
+            if (messages != null)
             {
                 ret = new JsonResult(new { messages });
             }

@@ -18,7 +18,7 @@ namespace DutyScheduler.Models
 
         public override string ToString()
         {
-            return Date.ToString("d");
+            return Date.ToString("d.M.yyyy");
         }
     }
 }
