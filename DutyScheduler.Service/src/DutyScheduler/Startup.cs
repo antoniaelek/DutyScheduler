@@ -14,7 +14,9 @@ using Swashbuckle.Swagger.Model;
 using DutyScheduler.Helpers;
 using System;
 using System.Collections.Generic;
+using DutyScheduler.Middlewares;
 using JayMuntzCom;
+using Microsoft.AspNetCore.Http;
 
 namespace DutyScheduler
 {
@@ -139,6 +141,8 @@ namespace DutyScheduler
             options.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(options);
             app.UseStaticFiles();
+            app.UseWebSockets();
+            app.UseWebSocketHandler();
 
             app.UseIdentity().UseCookieAuthentication();
 
