@@ -17,13 +17,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="18.12.2016"
             android:textColor="@android:color/black"
             android:padding="5dp"
+            android:hint="@string/event_date_hint"
+            android:maxEms="11"
             android:layout_centerInParent="true"
             android:id="@+id/date" />
         <ImageButton
-            android:contentDescription="close"
+            android:contentDescription="@string/close_button_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/close"
@@ -52,6 +53,24 @@
             android:id="@+id/dezurni"
             android:textColor="@android:color/black"
             android:text="Irena Oršolić"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/officeLayout"
+        android:padding="5dp"
+        android:layout_gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:text="Soba:"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/office"
+            android:textColor="@android:color/black"
+            android:text="256"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
@@ -89,27 +108,27 @@
             android:textColor="@android:color/black"
             android:text="do 15:00h"/>
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/zamjenaLayout"
-        android:padding="5dp"
         android:layout_gravity="center">
-        <TextView
+        <Button
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:text="Zamjena:"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/zamjena"
-            android:textColor="@android:color/black"
-            android:text="Matija Šulc"/>
+            android:id="@+id/traziZamjenuButton"
+            android:text="Traži zamjenu"/>
     </LinearLayout>
-
-
-
-
-
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+        <Button
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ponudiZamjenuButton"
+            android:text="Ponudi zamjenu"/>
+    </LinearLayout>
 </LinearLayout>

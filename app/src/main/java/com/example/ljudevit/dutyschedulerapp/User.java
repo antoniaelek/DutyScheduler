@@ -1,15 +1,53 @@
 package com.example.ljudevit.dutyschedulerapp;
 
+import java.io.Serializable;
+
 /**
  * class implementation of single user
  * class contains users name, surname, phone number and room
  */
 
-class User {
+class User implements Serializable{
+    private Integer ID;
+    private String username;
+    private String email;
+    private String password;
     private String name;
     private String surname;
-    private String phoneNumber;
-    private String room;
+    private String phone;
+    private String office;
+
+    public Integer getID() {
+        return ID;
+    }
+
+    void setID(Integer ID) {
+        this.ID = ID;
+    }
+
+    String getUsername() {
+        return username;
+    }
+
+    void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getName() {
         return name;
@@ -19,27 +57,27 @@ class User {
         this.name = name;
     }
 
-    public String getSurname() {
+    String getSurname() {
         return surname;
     }
 
-    public void setSurname(String surname) {
+    void setSurname(String surname) {
         this.surname = surname;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    String getPhone() {
+        return phone;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getRoom() {
-        return room;
+    String getOffice() {
+        return office;
     }
 
-    public void setRoom(String room) {
-        this.room = room;
+    void setOffice(String office) {
+        this.office = office;
     }
 }

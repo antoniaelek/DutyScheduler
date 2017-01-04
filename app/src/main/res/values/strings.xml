@@ -6,4 +6,8 @@
     <string name="login_remember_me">Remember me</string>
     <string name="login_button_text">Log in</string>
     <string name="login_background_description">Log in screen background</string>
+    <string name="event_date_hint">03.12.2016</string>
+    <string name="login_settings_title">Log in settings</string>
+    <string name="title_activity_log_in_settings">Log in settings</string>
+    <string name="close_button_desc">close</string>
 </resources>
