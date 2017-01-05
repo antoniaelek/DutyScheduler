@@ -14,7 +14,9 @@ using Swashbuckle.Swagger.Model;
 using DutyScheduler.Helpers;
 using System;
 using System.Collections.Generic;
+using DutyScheduler.Middlewares;
 using JayMuntzCom;
+using Microsoft.AspNetCore.Http;
 
 namespace DutyScheduler
 {
@@ -85,7 +87,7 @@ namespace DutyScheduler
                     o.Password.RequireLowercase = false;
                     o.Password.RequireUppercase = false;
                     o.Password.RequireNonAlphanumeric = false;
-                    o.Password.RequiredLength = 2;
+                    o.Password.RequiredLength = 4;
                     o.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
                     {
                         OnRedirectToLogin = ctx =>
@@ -139,6 +141,8 @@ namespace DutyScheduler
             options.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(options);
             app.UseStaticFiles();
+            app.UseWebSockets();
+            app.UseWebSocketHandler();
 
             app.UseIdentity().UseCookieAuthentication();
 

@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using DutyScheduler.Models;
 using DutyScheduler.Helpers;
+using DutyScheduler.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -12,10 +19,27 @@ namespace DutyScheduler.Controllers
     [Route("api/[controller]")]
     public class CalendarController : Controller
     {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
+
+        public CalendarController(ApplicationDbContext context,
+            UserManager<User> userManager,
+            IHostingEnvironment env)
+        {
+            _context = context;
+            _userManager = userManager;
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            builder.Build();
+        }
+
         /// <summary>
         /// Gets the calendar for the current month.
         /// </summary>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         public ActionResult Get()
         {
@@ -29,6 +53,7 @@ namespace DutyScheduler.Controllers
         /// <param name="year">Year</param>
         /// <param name="month">Month</param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet("year={year}&month={month}")]
         public ActionResult Get(int year, int month)
         {
@@ -50,8 +75,9 @@ namespace DutyScheduler.Controllers
                 Type = d.Type,
                 Date = d.Date.ToString("d.M.yyyy"),
                 Name = d.Name,
+                IsReplaceable = d.IsReplaceable,
                 Scheduled = d.Scheduled,
-                IsReplaceable = d.IsReplaceable
+                IsPrefered = d.IsPrefered
             }));
         }
 
@@ -64,18 +90,55 @@ namespace DutyScheduler.Controllers
 
                 var holiday = month.Holidays.FirstOrDefault(h => h.Date == date);
                 var specialDay = month.SpecialDays.FirstOrDefault(s => s.Date == date);
+                var nonWorkingDay = month.NonWorkingDays.FirstOrDefault(s => s.Date == date);
 
                 if (holiday != default(Holiday)) list.Add(holiday);
                 else if (specialDay != default(SpecialDay)) list.Add(specialDay);
+                else if (nonWorkingDay != default(NonWorkingDay)) list.Add(nonWorkingDay);
                 else list.Add(new Day(date));
             }
             return list;
         }
 
-        //[HttpPost]
-        //public void Post([FromBody]string value)
-        //{
-        //}
+        [Authorize]
+        [HttpPost("year={year}&month={month}&day={day}")]
+        public async void Post(int year, int month, int day, [FromBody]DayPostViewModel model)
+        {
+            var date = new DateTime(year,month,day);
+            if (model == default(DayPostViewModel)) return;
+
+            if (model.SetPrefered != null) await SetPrefered(date, model.SetPrefered.Value);
+            if (model.ApplyForReplacement) ApplyForReplacement(date);
+            if (model.SetReplaceable) SetReplaceable(date);
+        }
+
+
+        private async Task<User> GetCurrentUser()
+        {
+            await _context.Users.AsNoTracking().LoadAsync();
+            return await _userManager.FindByNameAsync(User.Identity.Name);
+        }
+
+        private async Task SetPrefered(DateTime date, bool isPrefered)
+        {
+            var user = await GetCurrentUser();
+            await _context.Preference.LoadAsync();
+            var entry = _context.Preference.FirstOrDefault(p => p.Date.Date == date && p.UserId.ToString() == user.Id);
+            if (entry != default(Preference))
+            {
+                entry.IsPreferred = isPrefered;
+            }
+        }
+
+        private void ApplyForReplacement(DateTime date)
+        {
+                
+        }
+
+        private void SetReplaceable(DateTime date)
+        {
+            
+        }
 
         //[HttpPut("{id}")]
         //public void Put(int id, [FromBody]string value)

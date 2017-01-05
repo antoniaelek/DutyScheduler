@@ -8,6 +8,7 @@ namespace DutyScheduler.Models
         public string Name { get; }
         public string Type { get; } = "holiday";
         public bool IsReplaceable { get; set; }
+        public bool? IsPrefered { get; set; }
         public string Scheduled { get; set; }
 
         public Holiday(string name, DateTime date)
