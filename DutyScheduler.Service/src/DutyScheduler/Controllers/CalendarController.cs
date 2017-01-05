@@ -7,10 +7,8 @@ using DutyScheduler.Models;
 using DutyScheduler.Helpers;
 using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,20 +17,15 @@ namespace DutyScheduler.Controllers
     [Route("api/[controller]")]
     public class CalendarController : Controller
     {
+        private static readonly string DateFormat = "yyyy-MM-dd";
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
 
         public CalendarController(ApplicationDbContext context,
-            UserManager<User> userManager,
-            IHostingEnvironment env)
+            UserManager<User> userManager)
         {
             _context = context;
             _userManager = userManager;
-
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            builder.Build();
         }
 
         /// <summary>
@@ -68,12 +61,13 @@ namespace DutyScheduler.Controllers
             return DaysToJson(days);
         }
 
-        private static ActionResult DaysToJson(IEnumerable<IDay> days)
+        private static ActionResult DaysToJson(IEnumerable<Day> days)
         {
-            return new JsonResult(days.Select(d => new ViewModels.DayViewModel()
+            return new JsonResult(days.Select(d => new DayViewModel()
             {
+                Date = d.Date.ToString(DateFormat),
+                Weekday = d.WeekDay,
                 Type = d.Type,
-                Date = d.Date.ToString("d.M.yyyy"),
                 Name = d.Name,
                 IsReplaceable = d.IsReplaceable,
                 Scheduled = d.Scheduled,
@@ -81,9 +75,9 @@ namespace DutyScheduler.Controllers
             }));
         }
 
-        private static IEnumerable<IDay> GetMonth(Month month)
+        private static IEnumerable<Day> GetMonth(Month month)
         {
-            var list = new List<IDay>(month.Last.Day);
+            var list = new List<Day>(month.Last.Day);
             for (var i = 1; i <= month.Last.Day; i++)
             {
                 var date = new DateTime(month.First.Year, month.First.Month, i);
@@ -95,39 +89,49 @@ namespace DutyScheduler.Controllers
                 if (holiday != default(Holiday)) list.Add(holiday);
                 else if (specialDay != default(SpecialDay)) list.Add(specialDay);
                 else if (nonWorkingDay != default(NonWorkingDay)) list.Add(nonWorkingDay);
-                else list.Add(new Day(date));
+                else list.Add(new OrdinaryDay(date));
             }
             return list;
         }
 
         [Authorize]
         [HttpPost("year={year}&month={month}&day={day}")]
-        public async void Post(int year, int month, int day, [FromBody]DayPostViewModel model)
+        public ActionResult Post(int year, int month, int day, [FromBody]DayPostViewModel model)
         {
             var date = new DateTime(year,month,day);
-            if (model == default(DayPostViewModel)) return;
+            if (model == default(DayPostViewModel)) return 304.SuccessStatusCode();
 
-            if (model.SetPrefered != null) await SetPrefered(date, model.SetPrefered.Value);
             if (model.ApplyForReplacement) ApplyForReplacement(date);
             if (model.SetReplaceable) SetReplaceable(date);
+            
+            return SetPrefered(date, model.SetPrefered);
         }
 
-
-        private async Task<User> GetCurrentUser()
+        private ActionResult SetPrefered(DateTime date, bool? isPrefered)
         {
-            await _context.Users.AsNoTracking().LoadAsync();
-            return await _userManager.FindByNameAsync(User.Identity.Name);
-        }
+            // check that user is logged in
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return 401.ErrorStatusCode();
 
-        private async Task SetPrefered(DateTime date, bool isPrefered)
-        {
-            var user = await GetCurrentUser();
-            await _context.Preference.LoadAsync();
-            var entry = _context.Preference.FirstOrDefault(p => p.Date.Date == date && p.UserId.ToString() == user.Id);
-            if (entry != default(Preference))
+            // update, or add new preference
+            _context.Preference.Load();
+            var entry = _context.Preference.FirstOrDefault(p => p.Date.Date == date && p.UserId == user);
+            if (entry != default(Preference) && isPrefered != null)
             {
                 entry.IsPreferred = isPrefered;
             }
+            else if (entry != default(Preference))
+            {
+                _context.Remove(entry);
+            }
+            else if (isPrefered != null)
+            {
+                entry = new Preference() {Date = date, IsPreferred = isPrefered, UserId = user};
+                _context.Preference.Add(entry);
+            }
+            _context.SaveChanges();
+            return 200.SuccessStatusCode();
         }
 
         private void ApplyForReplacement(DateTime date)

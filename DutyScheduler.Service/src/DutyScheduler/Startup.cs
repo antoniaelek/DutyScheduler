@@ -11,12 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
-using DutyScheduler.Helpers;
-using System;
-using System.Collections.Generic;
 using DutyScheduler.Middlewares;
-using JayMuntzCom;
-using Microsoft.AspNetCore.Http;
 
 namespace DutyScheduler
 {
@@ -46,86 +41,77 @@ namespace DutyScheduler
         public void ConfigureServices(IServiceCollection services)
         {
             var pathToDoc = Configuration["Swagger:Path"];
-            var pathToHolidays = "Holidays".ReadConfig("Path");
 
-            var holidays = new HolidayCalculator(DateTime.Today, pathToHolidays);
-            var list = new List<string>();
-            foreach (HolidayCalculator.Holiday h in holidays.OrderedHolidays)
+            services.AddMvc();
+
+            // Use a PostgreSQL database
+            var sqlConnectionString = Configuration.GetConnectionString("Postgres");
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(
+                    sqlConnectionString,
+                    b => b.MigrationsAssembly("DutyScheduler")
+                )
+            );
+
+            services.AddSwaggerGen();
+            services.ConfigureSwaggerGen(options =>
             {
-                //var holiday = new Holiday();
-                list.Add(h.Name + " - " + h.Date.ToString("D"));
-
-                // Add framework services.
-                services.AddMvc();
-
-                services.AddSwaggerGen();
-                services.ConfigureSwaggerGen(options =>
+                options.SingleApiVersion(new Info
                 {
-                    options.SingleApiVersion(new Info
-                    {
-                        Version = "v1",
-                        Title = "Duty Scheduler API",
-                        Description = "Duty Scheduler API",
-                        TermsOfService = "None"
-                    });
-                    options.IncludeXmlComments(pathToDoc);
-                    options.DescribeAllEnumsAsStrings();
+                    Version = "v1",
+                    Title = "Duty Scheduler API",
+                    Description = "Duty Scheduler API",
+                    TermsOfService = "None"
                 });
+                options.IncludeXmlComments(pathToDoc);
+                options.DescribeAllEnumsAsStrings();
+            });
 
-                // Use a PostgreSQL database
-                var sqlConnectionString = Configuration.GetConnectionString("Postgres");
-                services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseNpgsql(
-                        sqlConnectionString,
-                        b => b.MigrationsAssembly("DutyScheduler")
-                    )
-                );
 
-                services.AddIdentity<User, IdentityRole>(o =>
+            services.AddIdentity<User, IdentityRole>(o =>
+            {
+                o.Password.RequireDigit = false;
+                o.Password.RequireLowercase = false;
+                o.Password.RequireUppercase = false;
+                o.Password.RequireNonAlphanumeric = false;
+                o.Password.RequiredLength = 4;
+                o.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
                 {
-                    o.Password.RequireDigit = false;
-                    o.Password.RequireLowercase = false;
-                    o.Password.RequireUppercase = false;
-                    o.Password.RequireNonAlphanumeric = false;
-                    o.Password.RequiredLength = 4;
-                    o.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
+                    OnRedirectToLogin = ctx =>
                     {
-                        OnRedirectToLogin = ctx =>
+                        if (ctx.Request.Path.StartsWithSegments("/api") &&
+                            ctx.Response.StatusCode == (int)HttpStatusCode.OK)
                         {
-                            if (ctx.Request.Path.StartsWithSegments("/api") &&
-                                ctx.Response.StatusCode == (int)HttpStatusCode.OK)
-                            {
-                                ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                            }
-                            else
-                            {
-                                ctx.Response.Redirect(ctx.RedirectUri);
-                            }
-                            return Task.FromResult(0);
+                            ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         }
-                    };
-                })
-                    .AddEntityFrameworkStores<ApplicationDbContext>()
-                    .AddDefaultTokenProviders();
-
-                services.AddCors(options =>
-                {
-                    options.AddPolicy("AllowNeeded",
-                        builder =>
+                        else
                         {
-                            builder
-                            .AllowCredentials();
-                        });
-                });
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        }
+                        return Task.FromResult(0);
+                    }
+                };
+            })
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
-                services.AddMvcCore();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowNeeded",
+                    builder =>
+                    {
+                        builder
+                        .AllowCredentials();
+                    });
+            });
 
-                services.AddOptions();
+            services.AddMvcCore();
 
-                services.Configure<SmtpClientConfiguration>(Configuration.GetSection("SMTP"));
+            services.AddOptions();
 
-                services.AddTransient<IEmailSender, AuthMessageSender>();
-            }
+            services.Configure<SmtpClientConfiguration>(Configuration.GetSection("SMTP"));
+
+            services.AddTransient<IEmailSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
