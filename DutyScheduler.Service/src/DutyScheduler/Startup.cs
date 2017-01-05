@@ -87,7 +87,7 @@ namespace DutyScheduler
                     o.Password.RequireLowercase = false;
                     o.Password.RequireUppercase = false;
                     o.Password.RequireNonAlphanumeric = false;
-                    o.Password.RequiredLength = 2;
+                    o.Password.RequiredLength = 4;
                     o.Cookies.ApplicationCookie.Events = new CookieAuthenticationEvents
                     {
                         OnRedirectToLogin = ctx =>

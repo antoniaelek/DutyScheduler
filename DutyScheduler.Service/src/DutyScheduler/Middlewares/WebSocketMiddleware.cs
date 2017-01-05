@@ -45,7 +45,7 @@ namespace DutyScheduler.Middlewares
                                                     buffer.Offset,
                                                     buffer.Count);
                             var type = WebSocketMessageType.Text;
-                            var data = Encoding.UTF8.GetBytes("Echo from server: " + request);
+                            var data = Encoding.UTF8.GetBytes(request);
                             buffer = new ArraySegment<byte>(data);
 
                             foreach (var socket in _webSocketCollection)

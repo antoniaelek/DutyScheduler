@@ -10,6 +10,7 @@ namespace DutyScheduler.Models
     {
         public ICollection<Holiday> Holidays { get; }
         public ICollection<SpecialDay> SpecialDays { get; }
+        public ICollection<NonWorkingDay> NonWorkingDays { get; }
 
         public DateTime First { get; }
         public DateTime Last { get; }
@@ -18,6 +19,7 @@ namespace DutyScheduler.Models
         {
             Holidays = new List<Holiday>();
             SpecialDays = new List<SpecialDay>();
+            NonWorkingDays = new List<NonWorkingDay>();
 
             First = new DateTime(day.Year, day.Month, 1);
             Last = new DateTime(day.Year, day.Month, DateTime.DaysInMonth(day.Year, day.Month));
@@ -58,6 +60,21 @@ namespace DutyScheduler.Models
                 if (Holidays.FirstOrDefault(h => h.Date == startDate) == default(Holiday))
                     SpecialDays.Add(new SpecialDay("Friday",startDate));
                 startDate = startDate.AddDays(7);
+            }
+
+            // get all weekends, if they're not holidays
+            startDate = First;
+            while (startDate.DayOfWeek != DayOfWeek.Saturday)
+                startDate = startDate.AddDays(1);
+
+            while (startDate < Last)
+            {
+                if (Holidays.FirstOrDefault(h => h.Date == startDate) == default(Holiday))
+                    NonWorkingDays.Add(new NonWorkingDay(startDate));
+                startDate = startDate.AddDays(1);
+                if (Holidays.FirstOrDefault(h => h.Date == startDate) == default(Holiday))
+                    NonWorkingDays.Add(new NonWorkingDay(startDate));
+                startDate = startDate.AddDays(6);
             }
         }
     }

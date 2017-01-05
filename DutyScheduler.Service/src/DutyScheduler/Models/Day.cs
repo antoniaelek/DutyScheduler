@@ -8,12 +8,13 @@ namespace DutyScheduler.Models
         public string Name { get; }
         public string Type { get; } = "ordinary";
         public bool IsReplaceable { get; set; }
+        public bool? IsPrefered { get; set; }
         public string Scheduled { get; set; }
 
         public Day(DateTime date)
         {
             Date = date;
-            Name = null;
+            // Name = date.DayOfWeek.ToString();
         }
 
         public override string ToString()
