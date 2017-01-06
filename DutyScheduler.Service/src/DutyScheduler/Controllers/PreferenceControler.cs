@@ -35,7 +35,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date, or the datw which already has preference set.")]
         [Authorize]
         [HttpPost]
         public ActionResult Post([FromBody]CreatePreferenceViewModel model)
@@ -46,7 +46,7 @@ namespace DutyScheduler.Controllers
                 return 400.ErrorStatusCode(
                     new Dictionary<string, string>() { { "date", "Invalid date." } }
                 );
-
+           
             return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
         }
 
@@ -61,12 +61,13 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to update a non existing preference.")]
         [Authorize]
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
         {
             if (model == default(UpdatePreferenceViewModel)) return NoContent();
-            _context.Preference.AsNoTracking().Load();
+            _context.Preference.Include(p => p.User).Load();
             return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
         }
 
@@ -83,7 +84,7 @@ namespace DutyScheduler.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            _context.Preference.Load();
+            _context.Preference.Include(p => p.User).Load();
             return DeletePreference(_context.Preference.FirstOrDefault(p => p.Id == id));
         }
 
@@ -99,8 +100,19 @@ namespace DutyScheduler.Controllers
                     new Dictionary<string, string>() { { "date", "Unable to set preferences for past dates." } }
                 );
 
+            // check if preference already exists
+            _context.Preference.Include(p => p.User).Load();
+            var entry = _context.Preference.FirstOrDefault(p => p.Date == date && p.UserId == user.Id);
+
+            if (entry != default(Preference))
+                return
+                    400.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"date", "Preference for the selected date already exists"}
+                    });
+
             // add new preference
-            var entry = new Preference
+            entry = new Preference
             {
                 Date = date,
                 IsPreferred = isPrefered,
@@ -110,11 +122,21 @@ namespace DutyScheduler.Controllers
             _context.Preference.Add(entry);
             
             _context.SaveChanges();
-            return 201.SuccessStatusCode();
+            return entry.ToJson(201);
         }
 
         private ActionResult UpdatePrefered(Preference entry, bool isPrefered)
         {
+            // check if preference already exists
+            _context.Preference.Include(p => p.User).Load();
+            
+            if (entry == default(Preference))
+                return
+                    404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"id", "Preference with the given id does not exists"}
+                    });            
+            
             // check that user is logged in
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode();
@@ -128,7 +150,7 @@ namespace DutyScheduler.Controllers
             // update existing preference
             entry.IsPreferred = isPrefered;
             _context.SaveChanges();
-            return 200.SuccessStatusCode();
+            return entry.ToJson();
         }
 
         private ActionResult DeletePreference(Preference preference)
@@ -143,7 +165,10 @@ namespace DutyScheduler.Controllers
                 _context.SaveChanges();
                 return 200.SuccessStatusCode();
             }
-            return 404.ErrorStatusCode();
+            return 404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"id", "Preference with the given id does not exists"}
+                    });
         }
 
         private User GetCurrentUser()

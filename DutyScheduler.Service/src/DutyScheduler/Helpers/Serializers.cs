@@ -103,5 +103,32 @@ namespace DutyScheduler.Helpers
         }
 
         #endregion
+
+        #region preference
+
+        public static JsonResult ToJson (this Preference preference, int statusCode = 200)
+        {
+            var user = new
+            {
+                username = preference.User.UserName,
+                name = preference.User.Name,
+                lastName = preference.User.LastName,
+                email = preference.User.Email,
+                phone = preference.User.Phone,
+                office = preference.User.Office,
+                isAdmin = preference.User.IsAdmin
+            };
+            var json = new JsonResult(new
+            {
+                id = preference.Id,
+                userId = preference.UserId,
+                isPrefered = preference.IsPreferred,
+                user = user
+            });
+            json.StatusCode = statusCode;
+            return json;
+        }
+        
+        #endregion
     }
 }
