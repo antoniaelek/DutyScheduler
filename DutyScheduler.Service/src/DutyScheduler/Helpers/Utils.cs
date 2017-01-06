@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,17 @@ namespace DutyScheduler.Helpers
 {
     public static class Utils
     {
+        public static bool ValidateDate(this string date)
+        {
+            if (date == null) return false;
+            DateTime outRes;
+            if (!DateTime.TryParse(date, out outRes)) return false;
+            if (outRes.Year < 0) return false;
+            if (outRes.Month < 1 || outRes.Month > 12) return false;
+            if (outRes.Day < 1 || outRes.Day > DateTime.DaysInMonth(outRes.Year, outRes.Month)) return false;
+            return true;
+        }
+
         public static Dictionary<string, string> ValidationErrors(this ModelStateDictionary modelState)
         {
             var keys = modelState.Keys;
@@ -26,16 +38,16 @@ namespace DutyScheduler.Helpers
             return allErrors;
         }
 
-        public static JsonResult ErrorStatusCode(this int status, Dictionary<string, string> messages = null)
+        public static JsonResult ErrorStatusCode(this int status, Dictionary<string, string> errors = null)
         {
             var ret = new JsonResult(new
             {
                 Success = false
             });
 
-            if (messages != null)
+            if (errors != null)
             {
-                ret = new JsonResult(new { messages });
+                ret = new JsonResult(new { errors });
             }
 
             ret.StatusCode = status;

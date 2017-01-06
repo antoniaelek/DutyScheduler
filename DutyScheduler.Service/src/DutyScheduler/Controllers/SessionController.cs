@@ -52,7 +52,7 @@ namespace DutyScheduler.Controllers
 
 
         /// <summary>
-        /// Login.
+        /// Login either using the username and password or email and password combination.
         /// </summary>
         /// <param name="viewModel">User to login.</param>
         /// <returns>>HTTP status code and message indicating outcome of the operation.</returns>

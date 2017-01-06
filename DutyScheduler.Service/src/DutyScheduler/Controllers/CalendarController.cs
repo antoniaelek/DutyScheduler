@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using DutyScheduler.Models;
 using DutyScheduler.Helpers;
@@ -9,6 +9,7 @@ using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.SwaggerGen.Annotations;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -43,8 +44,8 @@ namespace DutyScheduler.Controllers
         /// <summary>
         /// Gets the calendar for the specified month and year.
         /// </summary>
-        /// <param name="year">Year</param>
-        /// <param name="month">Month</param>
+        /// <param name="year">Year part of date</param>
+        /// <param name="month">Month part of date</param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("year={year}&month={month}")]
@@ -93,57 +94,7 @@ namespace DutyScheduler.Controllers
             }
             return list;
         }
-
-        [Authorize]
-        [HttpPost("year={year}&month={month}&day={day}")]
-        public ActionResult Post(int year, int month, int day, [FromBody]DayPostViewModel model)
-        {
-            var date = new DateTime(year,month,day);
-            if (model == default(DayPostViewModel)) return 304.SuccessStatusCode();
-
-            if (model.ApplyForReplacement) ApplyForReplacement(date);
-            if (model.SetReplaceable) SetReplaceable(date);
-            
-            return SetPrefered(date, model.SetPrefered);
-        }
-
-        private ActionResult SetPrefered(DateTime date, bool? isPrefered)
-        {
-            // check that user is logged in
-            _context.Users.AsNoTracking().Load();
-            var user = _userManager.GetUserId(User);
-            if (user == null) return 401.ErrorStatusCode();
-
-            // update, or add new preference
-            _context.Preference.Load();
-            var entry = _context.Preference.FirstOrDefault(p => p.Date.Date == date && p.UserId == user);
-            if (entry != default(Preference) && isPrefered != null)
-            {
-                entry.IsPreferred = isPrefered;
-            }
-            else if (entry != default(Preference))
-            {
-                _context.Remove(entry);
-            }
-            else if (isPrefered != null)
-            {
-                entry = new Preference() {Date = date, IsPreferred = isPrefered, UserId = user};
-                _context.Preference.Add(entry);
-            }
-            _context.SaveChanges();
-            return 200.SuccessStatusCode();
-        }
-
-        private void ApplyForReplacement(DateTime date)
-        {
-                
-        }
-
-        private void SetReplaceable(DateTime date)
-        {
-            
-        }
-
+        
         //[HttpPut("{id}")]
         //public void Put(int id, [FromBody]string value)
         //{
