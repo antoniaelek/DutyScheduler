@@ -134,7 +134,7 @@ namespace DutyScheduler.Controllers
             return shift.ToJson(201);
         }
 
-        private ActionResult GetReplacementApplications(Shift entry)
+        private ActionResult GetReplacementApplications(Shift shift)
         {
             // check that user is logged in
             var user = GetCurrentUser();
@@ -142,10 +142,13 @@ namespace DutyScheduler.Controllers
 
             // check that shift exists and the current user can modify it
             _context.Shift.Include(s => s.User).Load();
-            if (entry == default(Shift)) return 404.ErrorStatusCode();
-            if (user.Id != entry.UserId && !user.IsAdmin) return 403.ErrorStatusCode();
+            if (shift == default(Shift)) return 404.ErrorStatusCode();
+            if (user.Id != shift.UserId && !user.IsAdmin) return 403.ErrorStatusCode();
 
-            return entry.ToJson();
+            _context.ReplacementRequest.Include(r=>r.User).Load();
+            var requests = _context.ReplacementRequest.Where(r => r.ShiftId == shift.Id).ToList();
+
+            return shift.ToJson(requests);
         }
 
 

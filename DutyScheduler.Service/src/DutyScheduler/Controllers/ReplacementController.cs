@@ -133,7 +133,7 @@ namespace DutyScheduler.Controllers
                 });
 
             // make sure this request does not already exist
-            _context.ReplacementRequest.Load();
+            _context.ReplacementRequest.Include(r=>r.Shift).Load();
             var request = _context.ReplacementRequest.FirstOrDefault(r => r.ShiftId == shift.Id && r.UserId == user.Id);
             if (request != default(ReplacementRequest)) return 304.SuccessStatusCode();
 
@@ -147,6 +147,7 @@ namespace DutyScheduler.Controllers
                 User = user
             };
             _context.Add(request);
+            _context.SaveChanges();
             return 201.SuccessStatusCode();
         }
 
