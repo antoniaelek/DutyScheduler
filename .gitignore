@@ -1,0 +1,8 @@
+DutyScheduler.Web/Web/packages/
+DutyScheduler.Web/Web/Web/bin/
+DutyScheduler.Service/.vs/
+DutyScheduler.Service/src/DutyScheduler/bin/
+DutyScheduler.Service/src/DutyScheduler/obj/
+DutyScheduler.Web/Web/Web/obj/
+*.suo
+DutyScheduler.Web/Web/.vs/
