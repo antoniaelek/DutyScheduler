@@ -11,6 +11,35 @@ namespace DutyScheduler.Helpers
     {
         private static readonly string DateFormat = "yyyy-MM-dd";
 
+        #region replacement request
+
+        public static JsonResult ToJson(this ReplacementRequest request, int statusCode = 200)
+        {
+            var user = new
+            {
+                username = request.User.UserName,
+                name = request.User.Name,
+                lastName = request.User.LastName,
+                email = request.User.Email,
+                phone = request.User.Phone,
+                office = request.User.Office,
+                isAdmin = request.User.IsAdmin
+            };
+            var json = new JsonResult(new
+            {
+                id = request.Id,
+                userId = request.UserId,
+                date = request.Date?.ToString(DateFormat),
+                user
+            });
+            json.StatusCode = statusCode;
+            return json;
+        }
+
+        #endregion
+
+        #region shift
+
         public static JsonResult ToJson(this Shift shift, int statusCode = 200)
         {
             var user = new
@@ -39,13 +68,16 @@ namespace DutyScheduler.Helpers
         {
             var replacementApplications = requests.Select(r => new
             {
+                r.Id,
+                r.ShiftId,
                 r.UserId,
-                r.User.Name,
-                r.User.LastName,
-                r.User.Email,
-                r.User.Phone,
-                r.User.Office,
-                r.User.IsAdmin
+                r.Date
+                //r.User.Name,
+                //r.User.LastName,
+                //r.User.Email,
+                //r.User.Phone,
+                //r.User.Office,
+                //r.User.IsAdmin
             });
             var user = new
             {
@@ -69,5 +101,7 @@ namespace DutyScheduler.Helpers
             json.StatusCode = statusCode;
             return json;
         }
+
+        #endregion
     }
 }

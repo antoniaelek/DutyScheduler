@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Core.v3;
 using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
@@ -33,17 +34,15 @@ namespace DutyScheduler.Controllers
         /// </summary>
         /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.Created, "Application successfully saved.")]
-        [SwaggerResponse(HttpStatusCode.NotModified, "Application already exists, nothing happened.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a non replaceable shift.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a non replaceable shift, or the shift that already has application by this user.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to send application for non existing shift.")]
         [Authorize]
         [HttpPost]
         public ActionResult Post([FromBody] ApplyForReplacementViewModel shift)
         {
-            _context.Shift.AsNoTracking().Load();
-            return ApplyForReplacement(_context.Shift.FirstOrDefault(s => s.Id == shift.ShiftId));
+            return ApplyForReplacement(shift);
         }
 
 
@@ -102,13 +101,6 @@ namespace DutyScheduler.Controllers
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode();
 
-            // get preference
-            //_context.ReplacementRequest.Load();
-            //var entry = _context.ReplacementRequest
-            //    .FirstOrDefault(r => r.Date != null &&
-            //                    r.Date.Value == date &&
-            //                    r.UserId == user.Id);
-
             if (entry != default(ReplacementRequest))
             {
                 _context.Remove(entry);
@@ -118,11 +110,14 @@ namespace DutyScheduler.Controllers
             return 404.ErrorStatusCode();
         }
 
-        private ActionResult ApplyForReplacement(Shift shift)
+        private ActionResult ApplyForReplacement(ApplyForReplacementViewModel model)
         {
             // check that user is logged in
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode();
+
+            _context.Shift.Include(s=>s.User).Load();
+            var shift = _context.Shift.FirstOrDefault(s => s.Id == model.ShiftId);
 
             // check that shift exists and is repleceable
             if (shift == default(Shift)) return 404.ErrorStatusCode();
@@ -132,15 +127,35 @@ namespace DutyScheduler.Controllers
                     {"setReplaceable", "The specified shift is not replaceable."}
                 });
 
+            // is date set?
+            DateTime? date = null;
+            // check date
+            if (model.Date != null)
+            {
+                if (!model.Date.ValidateDate())
+                    return 400.ErrorStatusCode(new Dictionary<string, string>() { { "date", "Invalid date" } });
+
+                date = DateTime.Parse(model.Date);
+
+                // check if date in past
+                if (date < DateTime.Today)
+                    return
+                        400.ErrorStatusCode(new Dictionary<string, string>()
+                        {
+                        {"date", "Unable to create shift for past dates."}
+                        });
+            }
+
             // make sure this request does not already exist
             _context.ReplacementRequest.Include(r=>r.Shift).Load();
             var request = _context.ReplacementRequest.FirstOrDefault(r => r.ShiftId == shift.Id && r.UserId == user.Id);
-            if (request != default(ReplacementRequest)) return 304.SuccessStatusCode();
+            if (request != default(ReplacementRequest))
+                return 400.ErrorStatusCode(new Dictionary<string, string>() { {"shiftId","Application for this shift and user aready exists."} });
 
             // create a new request
             request = new ReplacementRequest()
             {
-                Date = DateTime.Now,
+                Date = date,
                 Shift = shift,
                 ShiftId = shift.Id,
                 UserId = user.Id,
@@ -148,7 +163,7 @@ namespace DutyScheduler.Controllers
             };
             _context.Add(request);
             _context.SaveChanges();
-            return 201.SuccessStatusCode();
+            return request.ToJson(201);
         }
 
         private User GetCurrentUser()
