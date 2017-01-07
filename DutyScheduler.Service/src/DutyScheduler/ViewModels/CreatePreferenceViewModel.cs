@@ -1,8 +1,8 @@
 ﻿namespace DutyScheduler.ViewModels
 {
-    public class ApplyForReplacementViewModel
+    public class CreatePreferenceViewModel
     {
-        public int ShiftId { get; set; }
         public string Date { get; set; }
+        public bool SetPrefered { get; set; }
     }
 }

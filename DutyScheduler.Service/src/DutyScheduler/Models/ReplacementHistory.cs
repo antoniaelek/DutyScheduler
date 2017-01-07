@@ -11,10 +11,10 @@ namespace DutyScheduler.Models
         public int Id { get; set; }
 
         [Required]
-        public Guid ReplacedUserId { get; set; }
+        public string ReplacedUserId { get; set; }
 
         [Required]
-        public Guid ReplacingUserId { get; set; }
+        public string ReplacingUserId { get; set; }
 
         [Required]
         public DateTime Date { get; set; }
@@ -22,10 +22,10 @@ namespace DutyScheduler.Models
         [Required]
         public DateTime? DateCreated { get; set; }
 
-        //[ForeignKey("ReplacedUserId")]
-        //public virtual User ReplacedUser { get; set; }
+        [ForeignKey("ReplacedUserId")]
+        public virtual User ReplacedUser { get; set; }
 
-        //[ForeignKey("ReplacingUserId")]
-        //public virtual User ReplacingUser { get; set; }
+        [ForeignKey("ReplacingUserId")]
+        public virtual User ReplacingUser { get; set; }
     }
 }
