@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using DutyScheduler.Helpers;
 using DutyScheduler.Models;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
 {
@@ -43,6 +45,8 @@ namespace DutyScheduler.Controllers
         /// Logout.
         /// </summary>
         /// <returns>>HTTP status code indicating outcome of the operation.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User successfully logged out.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Other errors.")]
         [HttpDelete]
         [Authorize]
         public async Task Logout()
@@ -56,6 +60,8 @@ namespace DutyScheduler.Controllers
         /// </summary>
         /// <param name="viewModel">User to login.</param>
         /// <returns>>HTTP status code and message indicating outcome of the operation.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User successfully logged in.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
         [HttpPost]
         [AllowAnonymous]
         public async Task<JsonResult> Login([FromBody]LoginViewModel viewModel)
@@ -88,17 +94,7 @@ namespace DutyScheduler.Controllers
                 if (result.Succeeded)
                 {
                     user = await _userManager.FindByEmailAsync(user.Email);
-                    var tmp = _userManager.GetRolesAsync(user);
-                    return new JsonResult(new
-                    {
-                        Success = true,
-                        Username = user.UserName,
-                        user.Name,
-                        user.LastName,
-                        user.Email,
-                        user.Office,
-                        user.Phone
-                    });
+                    return user.ToJson();
                 }
             }
             if (!ModelState.Keys.Any()) 

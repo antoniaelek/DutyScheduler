@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol.Core.v3;
 using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
@@ -28,7 +27,6 @@ namespace DutyScheduler.Controllers
             _userManager = userManager;
         }
 
-
         /// <summary>
         /// Apply for replacement.
         /// </summary>
@@ -36,7 +34,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.Created, "Application successfully saved.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a non replaceable shift, or the shift that already has application by this user.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for own shift, or a non replaceable shift, or the shift that already has application by this user.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to send application for non existing shift.")]
         [Authorize]
         [HttpPost]
@@ -75,22 +73,43 @@ namespace DutyScheduler.Controllers
         [HttpGet("{request}")]
         public ActionResult Get(int request)
         {
-            _context.ReplacementRequest.AsNoTracking().Load();
-            return GetReplacementRequest(_context.ReplacementRequest.FirstOrDefault(s => s.Id == request));
+            return GetReplacementRequest(request);
         }
 
-        private ActionResult GetReplacementRequest(ReplacementRequest entry)
+
+        private ActionResult GetUsersReplacementRequest(string userId)
         {
-            // check that user is logged in
-            var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
-            
+            _context.Users.AsNoTracking().Load();
+            var user = _context.Users.FirstOrDefault(u => u.UserName == userId);
+            if (user == default(User))
+            {
+                return
+                    404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"userId", "The user with the specified userId was not found"}
+                    });
+            }
+
+            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).AsNoTracking().Load();
+
+            var entries = _context.ReplacementRequest.Where(r => r.UserId == userId);
+
+            if (entries != null)
+            {
+                return entries.ToJson();
+            }
+            return new List<ReplacementRequest>().ToJson();
+        }
+
+        private ActionResult GetReplacementRequest(int requestId)
+        {
+            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
+
+            var entry = _context.ReplacementRequest.FirstOrDefault(r => r.Id == requestId);
+
             if (entry != default(ReplacementRequest))
             {
-                //var json = entry.ToJson();
-                var result = new JsonResult(entry);
-                result.StatusCode = 200;
-                return result;
+                return entry.ToJson();
             }
             return 404.ErrorStatusCode();
         }
@@ -127,13 +146,17 @@ namespace DutyScheduler.Controllers
                     {"setReplaceable", "The specified shift is not replaceable."}
                 });
 
+            // check that user in not trying to replace their own shift
+            if (user.UserName == shift.UserId)
+                return 400.ErrorStatusCode(new Dictionary<string, string>() {{"shiftId", "User cannot apply to replace their own shift."}});
+
             // is date set?
             DateTime? date = null;
             // check date
             if (model.Date != null)
             {
                 if (!model.Date.ValidateDate())
-                    return 400.ErrorStatusCode(new Dictionary<string, string>() { { "date", "Invalid date" } });
+                    return 400.ErrorStatusCode(new Dictionary<string, string>() {{"date", "Invalid date"}});
 
                 date = DateTime.Parse(model.Date);
 
@@ -142,7 +165,7 @@ namespace DutyScheduler.Controllers
                     return
                         400.ErrorStatusCode(new Dictionary<string, string>()
                         {
-                        {"date", "Unable to create shift for past dates."}
+                            {"date", "Unable to create shift for past dates."}
                         });
             }
 

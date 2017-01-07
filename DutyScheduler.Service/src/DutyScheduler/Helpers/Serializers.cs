@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using DutyScheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,26 +9,84 @@ namespace DutyScheduler.Helpers
     {
         private static readonly string DateFormat = "yyyy-MM-dd";
 
-        #region replacement request
+        #region replacement request   
+
+        private static object SerializeReplacementRequest(ReplacementRequest request)
+        {
+            return new
+            {
+                id = request.Id,
+                shiftId = request.Shift.Id,
+                userId = request.UserId,
+                date = request.Date?.ToString(DateFormat)
+            };
+        }
+
+        private static IEnumerable<object> SerializeReplacementRequests(IEnumerable<ReplacementRequest> requests)
+        {
+            return requests.Select(r => new
+            {
+                id = r.Id,
+                shiftId = r.ShiftId,
+                userId = r.UserId,
+                date = r.Date?.ToString(DateFormat)
+            });
+        }
 
         public static JsonResult ToJson(this ReplacementRequest request, int statusCode = 200)
         {
-            var user = new
-            {
-                username = request.User.UserName,
-                name = request.User.Name,
-                lastName = request.User.LastName,
-                email = request.User.Email,
-                phone = request.User.Phone,
-                office = request.User.Office,
-                isAdmin = request.User.IsAdmin
-            };
+            var user = SerializeUser(request.User);
+            var shift = SerializeShift(request.Shift);
+
             var json = new JsonResult(new
             {
                 id = request.Id,
+                shiftId = request.Shift.Id,
                 userId = request.UserId,
                 date = request.Date?.ToString(DateFormat),
-                user
+                user,
+                shift
+            });
+            json.StatusCode = statusCode;
+            return json;
+        }
+
+        public static JsonResult ToJson(this IEnumerable<ReplacementRequest> requests, int statusCode = 200)
+        {
+            var json = new JsonResult(SerializeReplacementRequests(requests));
+            json.StatusCode = statusCode;
+            return json;
+        }
+
+        #endregion
+
+        #region user
+
+        private static object SerializeUser(User user)
+        {
+            return new
+            {
+                username = user.UserName,
+                name = user.Name,
+                lastName = user.LastName,
+                email = user.Email,
+                phone = user.Phone,
+                office = user.Office,
+                isAdmin = user.IsAdmin
+            };
+        }
+
+        public static JsonResult ToJson(this User user, int statusCode = 200)
+        {
+            var json = new JsonResult(new
+            {
+                username = user.UserName,
+                name = user.Name,
+                lastName = user.LastName,
+                email = user.Email,
+                phone = user.Phone,
+                office = user.Office,
+                isAdmin = user.IsAdmin
             });
             json.StatusCode = statusCode;
             return json;
@@ -40,22 +96,24 @@ namespace DutyScheduler.Helpers
 
         #region shift
 
-        public static JsonResult ToJson(this Shift shift, int statusCode = 200)
+        private static object SerializeShift(Shift shift)
         {
-            var user = new
-            {
-                username = shift.User.UserName,
-                name = shift.User.Name,
-                lastName = shift.User.LastName,
-                email = shift.User.Email,
-                phone = shift.User.Phone,
-                office = shift.User.Office,
-                isAdmin = shift.User.IsAdmin
-            };
-            var json =  new JsonResult(new
+            return new
             {
                 id = shift.Id,
-                userId =shift.UserId,
+                userId = shift.UserId,
+                date = shift.Date.ToString(DateFormat),
+                isReplaceable = shift.IsRepleceable,
+            };
+        }
+
+        public static JsonResult ToJson(this Shift shift, int statusCode = 200)
+        {
+            var user = SerializeUser(shift.User);
+            var json = new JsonResult(new
+            {
+                id = shift.Id,
+                userId = shift.UserId,
                 date = shift.Date.ToString(DateFormat),
                 isReplaceable = shift.IsRepleceable,
                 user
@@ -64,31 +122,12 @@ namespace DutyScheduler.Helpers
             return json;
         }
 
-        public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200)
+
+
+        public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200) // todo
         {
-            var replacementApplications = requests.Select(r => new
-            {
-                r.Id,
-                r.ShiftId,
-                r.UserId,
-                r.Date
-                //r.User.Name,
-                //r.User.LastName,
-                //r.User.Email,
-                //r.User.Phone,
-                //r.User.Office,
-                //r.User.IsAdmin
-            });
-            var user = new
-            {
-                username = shift.User.UserName,
-                name = shift.User.Name,
-                lastName = shift.User.LastName,
-                email = shift.User.Email,
-                phone = shift.User.Phone,
-                office = shift.User.Office,
-                isAdmin = shift.User.IsAdmin
-            };
+            var replacementApplications = SerializeReplacementRequests(requests);
+            var user = SerializeUser(shift.User);
             var json = new JsonResult(new
             {
                 id = shift.Id,
@@ -106,29 +145,32 @@ namespace DutyScheduler.Helpers
 
         #region preference
 
+        private static object SeralizePreference(Preference preference)
+        {
+            return new
+            {
+                id = preference.Id,
+                userId = preference.UserId,
+                isPrefered = preference.IsPreferred
+            };
+        }
+
         public static JsonResult ToJson (this Preference preference, int statusCode = 200)
         {
-            var user = new
-            {
-                username = preference.User.UserName,
-                name = preference.User.Name,
-                lastName = preference.User.LastName,
-                email = preference.User.Email,
-                phone = preference.User.Phone,
-                office = preference.User.Office,
-                isAdmin = preference.User.IsAdmin
-            };
+            var user = SerializeUser(preference.User);
+            var pref = SeralizePreference(preference);
+
             var json = new JsonResult(new
             {
                 id = preference.Id,
                 userId = preference.UserId,
                 isPrefered = preference.IsPreferred,
-                user = user
+                user
             });
             json.StatusCode = statusCode;
             return json;
         }
-        
+
         #endregion
     }
 }

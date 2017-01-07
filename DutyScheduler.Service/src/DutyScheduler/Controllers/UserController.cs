@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using DutyScheduler.Helpers;
 using DutyScheduler.Models;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers 
 {
@@ -46,16 +48,7 @@ namespace DutyScheduler.Controllers
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 404.ErrorStatusCode();
-            return new JsonResult(new
-            {
-                Success = true, user.Id,
-                user.UserName,
-                user.Name,
-                user.LastName,
-                user.Email,
-                user.Office,
-                user.Phone
-            });
+            return user.ToJson();
         }
 
         /// <summary>
@@ -63,6 +56,8 @@ namespace DutyScheduler.Controllers
         /// </summary>
         /// <param name="viewModel">User profile to be created.</param>
         /// <returns>New user JSON data.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User profile successfully created.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
         [HttpPost]
         [AllowAnonymous]
         public async Task<JsonResult> Create([FromBody]RegisterViewModel viewModel)
@@ -83,23 +78,14 @@ namespace DutyScheduler.Controllers
 
                 if (result.Succeeded)
                 {
-                    return new JsonResult(new
-                    {
-                        Success = true,
-                        Username = user.UserName,
-                        user.Name,
-                        user.LastName,
-                        user.Email,
-                        user.Office,
-                        user.Phone
-                    });
+                    return user.ToJson(201);
                 }
             
             }
             if (!ModelState.Keys.Any()) 
                 ModelState.AddModelError("Email","There already exists an account with that email.");
             var allErrors = ModelState.ValidationErrors();
-            var ret = new JsonResult(new { Success = false, Errors = allErrors});
+            var ret = new JsonResult(new { Errors = allErrors});
             ret.StatusCode = 400;
             return ret;
         }
@@ -110,6 +96,7 @@ namespace DutyScheduler.Controllers
         /// <param name="username">Unique identifier of the user.</param>
         /// <param name="viewModel">New user data.</param>
         /// <returns>JSON user data.</returns>
+        [SwaggerResponse(HttpStatusCode.OK, "User details successfully saved.")]
         [HttpPut("{username}")]
         [Authorize]
         public async Task<JsonResult> Update(string username, [FromBody]UpdateUserViewModel viewModel)
@@ -132,16 +119,7 @@ namespace DutyScheduler.Controllers
             _context.Users.Update(user);
             _context.SaveChanges();
 
-            return new JsonResult(new
-            {
-                Success = true,
-                Username = user.UserName,
-                user.Name,
-                user.LastName,
-                user.Email,
-                user.Phone,
-                user.Office
-            });
+            return user.ToJson();
         }
 
         /// <summary>
@@ -149,6 +127,10 @@ namespace DutyScheduler.Controllers
         /// </summary>
         /// <param name="username">Unique identifier of the user.</param>
         /// <returns>HTTP status code indicating outcome of the delete operation.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User profile successfully deleted.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Other errors.")]
         [HttpDelete("{username}")]
         [Authorize]
         public async Task<JsonResult> Delete(string username)
@@ -162,7 +144,8 @@ namespace DutyScheduler.Controllers
                 return isAuthorized.StatusCode.Value.ErrorStatusCode();
 
             if (isAuthorized.StatusCode != 200)
-                return 400.ErrorStatusCode();
+                if (isAuthorized.StatusCode != null) return isAuthorized.StatusCode.Value.ErrorStatusCode();
+                else return 400.ErrorStatusCode();
 
             await _userManager.DeleteAsync(user);
             return 200.SuccessStatusCode();
