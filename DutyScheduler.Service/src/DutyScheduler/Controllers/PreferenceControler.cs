@@ -42,7 +42,7 @@ namespace DutyScheduler.Controllers
         {
             if (model == default(CreatePreferenceViewModel)) return NoContent();
 
-            if (!Utils.ValidateDate(model.Date))
+            if (!model.Date.ValidateDate())
                 return 400.ErrorStatusCode(
                     new Dictionary<string, string>() { { "date", "Invalid date." } }
                 );

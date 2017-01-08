@@ -8,7 +8,6 @@ using DutyScheduler.Helpers;
 using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Swashbuckle.SwaggerGen.Annotations;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -33,6 +32,7 @@ namespace DutyScheduler.Controllers
         /// Gets the calendar for the current month.
         /// </summary>
         /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Calendar returned successfully.")]
         [AllowAnonymous]
         [HttpGet]
         public ActionResult Get()
@@ -47,6 +47,8 @@ namespace DutyScheduler.Controllers
         /// <param name="year">Year part of date</param>
         /// <param name="month">Month part of date</param>
         /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Calendar returned successfully.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Invalid month or year.")]
         [AllowAnonymous]
         [HttpGet("year={year}&month={month}")]
         public ActionResult Get(int year, int month)
@@ -94,15 +96,5 @@ namespace DutyScheduler.Controllers
             }
             return list;
         }
-        
-        //[HttpPut("{id}")]
-        //public void Put(int id, [FromBody]string value)
-        //{
-        //}
-
-        //[HttpDelete("{id}")]
-        //public void Delete(int id)
-        //{
-        //}
     }
 }
