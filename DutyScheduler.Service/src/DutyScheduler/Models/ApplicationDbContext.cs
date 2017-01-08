@@ -27,5 +27,6 @@ namespace DutyScheduler.Models
         public DbSet<ReplacementHistory> ReplacementHistory { get; set; }
         public DbSet<ReplacementRequest> ReplacementRequest { get; set; }
         public DbSet<Shift> Shift { get; set; }
+        // public DbSet<SchedulerLog> SchedulerLog { get; set; }
     }
 }

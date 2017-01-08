@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
 using DutyScheduler.Middlewares;
+using Microsoft.AspNetCore.Routing;
 
 namespace DutyScheduler
 {
@@ -111,7 +112,7 @@ namespace DutyScheduler
 
             services.Configure<SmtpClientConfiguration>(Configuration.GetSection("SMTP"));
 
-            services.AddTransient<IEmailSender, AuthMessageSender>();
+            //services.AddTransient<IEmailSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -136,7 +137,7 @@ namespace DutyScheduler
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=home}/{action=index}/{id?}");
             });
             app.UseSwagger();
             app.UseSwaggerUi();
