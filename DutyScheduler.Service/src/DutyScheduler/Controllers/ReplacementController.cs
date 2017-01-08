@@ -28,31 +28,31 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Apply for replacement.
+        /// Request replacement.
         /// </summary>
         /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.Created, "Application successfully saved.")]
+        [SwaggerResponse(HttpStatusCode.Created, "Request successfully saved.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for own shift, or a non replaceable shift, or the shift that already has application by this user.")]
-        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to send application for non existing shift.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send request for own shift, or a non replaceable shift, or the shift that already has identical request by this user.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to send request for non existing shift.")]
         [Authorize]
         [HttpPost]
-        public ActionResult Post([FromBody] ApplyForReplacementViewModel shift)
+        public ActionResult Post([FromBody] RequestReplacementViewModel shift)
         {
-            return ApplyForReplacement(shift);
+            return RequestReplacement(shift);
         }
 
 
         /// <summary>
-        /// Delete replacement application specified by <paramref name="request"/>
+        /// Delete replacement request specified by <paramref name="request"/>
         /// </summary>
-        /// <param name="request">Request id</param>
+        /// <param name="request">request id</param>
         /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.OK, "Replacement application deleted successfully.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement request deleted successfully.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement application.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a past date, or invalid date.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement request.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send request for a past date, or invalid date.")]
         [Authorize]
         [HttpDelete("{request}")]
         public ActionResult Delete(int request)
@@ -62,13 +62,13 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Get replacement application specified by <paramref name="request"/>
+        /// Get replacement request specified by <paramref name="request"/>
         /// </summary>
-        /// <param name="request">Request id</param>
+        /// <param name="request">request id</param>
         /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.OK, "Replacement application returned successfully.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement request returned successfully.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement application.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement request.")]
         [Authorize]
         [HttpGet("{request}")]
         public ActionResult Get(int request)
@@ -76,9 +76,25 @@ namespace DutyScheduler.Controllers
             return GetReplacementRequest(request);
         }
 
-
-        private ActionResult GetUsersReplacementRequest(string userId)
+        /// <summary>
+        /// Get <paramref name="user"/>'s replacement requests for <paramref name="shift"/>.
+        /// </summary>
+        /// <param name="user">Username</param>
+        /// <param name="shift">Shift id</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement request returned successfully.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement request.")]
+        [Authorize]
+        [HttpGet("user={user}&shift={shift}")]
+        public ActionResult Get(string user, int shift)
         {
+            return GetReplacementRequests(user, shift);
+        }
+
+        private ActionResult GetReplacementRequests(string userId, int shiftid)
+        {
+            // check that user exists
             _context.Users.AsNoTracking().Load();
             var user = _context.Users.FirstOrDefault(u => u.UserName == userId);
             if (user == default(User))
@@ -86,13 +102,23 @@ namespace DutyScheduler.Controllers
                 return
                     404.ErrorStatusCode(new Dictionary<string, string>()
                     {
-                        {"userId", "The user with the specified userId was not found"}
+                        {"user", "The specified user does not exist"}
                     });
             }
 
+            // check that shift exists
+            _context.Shift.AsNoTracking().Load();
+            var shift = _context.Shift.FirstOrDefault(s => s.Id == shiftid);
+            if (shift == default(Shift))
+                return
+                    404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"shift", "The specified shift does not exist"}
+                    });
+
             _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).AsNoTracking().Load();
 
-            var entries = _context.ReplacementRequest.Where(r => r.UserId == userId);
+            var entries = _context.ReplacementRequest.Where(r => r.UserId == userId && r.ShiftId == shiftid);
 
             if (entries != null)
             {
@@ -129,7 +155,7 @@ namespace DutyScheduler.Controllers
             return 404.ErrorStatusCode();
         }
 
-        private ActionResult ApplyForReplacement(ApplyForReplacementViewModel model)
+        private ActionResult RequestReplacement(RequestReplacementViewModel model)
         {
             // check that user is logged in
             var user = GetCurrentUser();
@@ -148,7 +174,7 @@ namespace DutyScheduler.Controllers
 
             // check that user in not trying to replace their own shift
             if (user.UserName == shift.UserId)
-                return 400.ErrorStatusCode(new Dictionary<string, string>() {{"shiftId", "User cannot apply to replace their own shift."}});
+                return 400.ErrorStatusCode(new Dictionary<string, string>() {{"shiftId", "User cannot replace their own shift."}});
 
             // is date set?
             DateTime? date = null;
@@ -171,9 +197,17 @@ namespace DutyScheduler.Controllers
 
             // make sure this request does not already exist
             _context.ReplacementRequest.Include(r=>r.Shift).Load();
-            var request = _context.ReplacementRequest.FirstOrDefault(r => r.ShiftId == shift.Id && r.UserId == user.Id);
+            var request = date != null
+                ? _context.ReplacementRequest.FirstOrDefault(
+                    r => r.ShiftId == shift.Id && r.UserId == user.Id && r.Date != null && r.Date.Value.Date == date.Value.Date)
+                : _context.ReplacementRequest.FirstOrDefault(
+                    r => r.ShiftId == shift.Id && r.UserId == user.Id && r.Date == null);
             if (request != default(ReplacementRequest))
-                return 400.ErrorStatusCode(new Dictionary<string, string>() { {"shiftId","Application for this shift and user aready exists."} });
+                return
+                    400.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"shiftId", "Identical request for this shift from this user aready exists."}
+                    });
 
             // create a new request
             request = new ReplacementRequest()
@@ -198,168 +232,5 @@ namespace DutyScheduler.Controllers
             if (userObj == default(User)) return null;
             return userObj;
         }
-
-        #region unused
-
-        ///// <summary>
-        ///// Apply for replacement for the date specified by <paramref name="year"/>, 
-        ///// <paramref name="month"/> and <paramref name="day"/>.
-        ///// </summary>
-        ///// <param name="year">Year part of date</param>
-        ///// <param name="month">Month part of date</param>
-        ///// <param name="day">Day part of date</param>
-        ///// <returns></returns>
-        //[SwaggerResponse(HttpStatusCode.Created, "Application successfully saved.")]
-        //[SwaggerResponse(HttpStatusCode.NotModified, "Application already exists, nothing happened.")]
-        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        //[SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        //[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a past date, or invalid date.")]
-        //[Authorize]
-        //[HttpPost("year={year}&month={month}&day={day}")]
-        //public ActionResult Post(int year, int month, int day)
-        //{
-        //    if (!Utils.ValidateDate(year, month, day))
-        //        return 400.ErrorStatusCode(
-        //            new Dictionary<string, string>() { { "date", "Invalid date." } }
-        //        );
-
-        //    return ApplyForReplacement(new DateTime(year, month, day));
-        //}
-
-        ///// <summary>
-        ///// Delete replacement application for date specified by 
-        ///// <paramref name="year"/>, <paramref name="month"/> 
-        ///// and <paramref name="day"/>
-        ///// </summary>
-        ///// <param name="year">Year part of date</param>
-        ///// <param name="month">Month part of date</param>
-        ///// <param name="day">Day part of date</param>
-        ///// <returns></returns>
-        //[SwaggerResponse(HttpStatusCode.OK, "Replacement application deleted successfully.")]
-        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        //[SwaggerResponse(HttpStatusCode.NotFound, "Trying to reference non existing replacement application.")]
-        //[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send application for a past date, or invalid date.")]
-        //[Authorize]
-        //[HttpDelete("year={year}&month={month}&day={day}")]
-        //public ActionResult Delete(int year, int month, int day)
-        //{
-        //    if (!Utils.ValidateDate(year, month, day))
-        //        return 400.ErrorStatusCode(
-        //            new Dictionary<string, string>() { { "date", "Invalid date." } }
-        //        );
-
-        //    return DeleteReplacementRequest(new DateTime(year, month, day));
-        //}
-
-        ///// <summary>
-        ///// Set whether the date specified by <paramref name="year"/>, 
-        ///// <paramref name="month"/> and <paramref name="day"/> is repleceable.
-        ///// </summary>
-        ///// <param name="year">Year part of date</param>
-        ///// <param name="month">Month part of date</param>
-        ///// <param name="day">Day part of date</param>
-        ///// <param name="model">Model</param>
-        ///// <returns></returns>
-        //[SwaggerResponse(HttpStatusCode.OK, "Setting successfully saved.")]
-        //[SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
-        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        //[SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        //[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set this setting for a past date, or invalid date.")]
-        //[Authorize]
-        //[HttpPut("year={year}&month={month}&day={day}")]
-        //public ActionResult Put(int year, int month, int day, [FromBody]SetReplacementViewModel model)
-        //{
-        //    if (model == default(SetReplacementViewModel)) return NoContent();
-
-        //    if (!Utils.ValidateDate(year, month, day))
-        //        return 400.ErrorStatusCode(
-        //            new Dictionary<string, string>() { { "date", "Invalid date." } }
-        //        );
-
-        //    return SetReplaceable(new DateTime(year, month, day), model.SetReplaceable);
-        //}
-
-        //private ActionResult SetReplaceable(DateTime date, bool setReplaceable)
-        //{
-        //    // check that user is logged in
-        //    var user = GetCurrentUser();
-        //    if (user == default(User)) return 401.ErrorStatusCode();
-
-        //    // check that shift exists and the current user can modify it
-        //    _context.Shift.Load();
-        //    var entry = _context.Shift.FirstOrDefault(p => p.Date.Date == date && p.UserId == user.Id);
-        //    if (entry == default(Shift)) return 404.ErrorStatusCode();
-        //    if (user.Id != entry.UserId && !user.IsAdmin) return 403.ErrorStatusCode();
-
-        //    // check if date in past
-        //    if (date < DateTime.Today)
-        //        return 400.ErrorStatusCode(
-        //            new Dictionary<string, string>() { { "date", "Unable to change settings for past dates." } }
-        //        );
-
-
-        //    entry.IsRepleceable = setReplaceable;
-        //    _context.SaveChanges();
-        //    return 200.SuccessStatusCode();
-        //}
-
-        //private ActionResult ApplyForReplacement(DateTime date)
-        //{
-        //    // check that user is logged in
-        //    var user = GetCurrentUser();
-        //    if (user == default(User)) return 401.ErrorStatusCode();
-
-        //    // check that shift exists and is repleceable
-        //    _context.Shift.Load();
-        //    var shift = _context.Shift.FirstOrDefault(p => p.Date.Date == date);
-        //    if (shift == default(Shift)) return 404.ErrorStatusCode();
-        //    if (!shift.IsRepleceable)
-        //        return 400.ErrorStatusCode(new Dictionary<string, string>
-        //        {
-        //            {"setReplaceable", "The specified shift is not replaceable."}
-        //        });
-
-        //    // make sure this request does not already exist
-        //    _context.ReplacementRequest.Load();
-        //    var request = _context.ReplacementRequest.FirstOrDefault(r => r.ShiftId == shift.Id && r.UserId == user.Id);
-        //    if (request != default(ReplacementRequest)) return 304.SuccessStatusCode();
-
-        //    // create a new request
-        //    request = new ReplacementRequest()
-        //    {
-        //        Date = DateTime.Now,
-        //        Shift = shift,
-        //        ShiftId = shift.Id,
-        //        UserId = user.Id,
-        //        User = user
-        //    };
-        //    _context.Add(request);
-        //    return 201.SuccessStatusCode();
-        //}
-
-        //private ActionResult DeleteReplacementRequest(DateTime date)
-        //{
-        //    // check that user is logged in
-        //    var user = GetCurrentUser();
-        //    if (user == default(User)) return 401.ErrorStatusCode();
-
-        //    // get preference
-        //    _context.ReplacementRequest.Load();
-        //    var entry = _context.ReplacementRequest
-        //        .FirstOrDefault(r => r.Date != null &&
-        //                        r.Date.Value == date &&
-        //                        r.UserId == user.Id);
-
-        //    if (entry != default(ReplacementRequest))
-        //    {
-        //        _context.Remove(entry);
-        //        _context.SaveChanges();
-        //        return 200.SuccessStatusCode();
-        //    }
-        //    return 404.ErrorStatusCode();
-        //}
-
-        #endregion
-
     }
 }

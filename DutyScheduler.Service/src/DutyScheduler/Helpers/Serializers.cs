@@ -143,7 +143,7 @@ namespace DutyScheduler.Helpers
 
         public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200) // todo
         {
-            var replacementApplications = SerializeReplacementRequests(requests);
+            var replacementRequests = SerializeReplacementRequests(requests);
             var user = SerializeUser(shift.User);
             var json = new JsonResult(new
             {
@@ -152,7 +152,7 @@ namespace DutyScheduler.Helpers
                 date = shift.Date.ToString(DateFormat),
                 isReplaceable = shift.IsRepleceable,
                 user,
-                replacementApplications
+                replacementRequests
             });
             json.StatusCode = statusCode;
             return json;

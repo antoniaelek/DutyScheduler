@@ -68,23 +68,23 @@ namespace DutyScheduler.Controllers
         /// </summary>
         /// <param name="id">Id of the shift</param>
         /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.OK, "Replacement applications fetched successfully.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement requests fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch replacement applications for non existing shift.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch replacement requests for non existing shift.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [Authorize]
         [HttpGet("{id}/replacement")]
         public ActionResult Get(int id)
         {
             _context.Shift.Include(s=>s.User).AsNoTracking().Load();
-            return GetReplacementApplications(_context.Shift.FirstOrDefault(s => s.Id == id));
+            return GetReplacementRequests(_context.Shift.FirstOrDefault(s => s.Id == id));
         }
 
 
         /// <summary>
-        /// Get shifts for the user specified by <paramref name="username"/>.
+        /// Get shifts for user specified by <paramref name="username"/>.
         /// </summary>
-        /// <param name="username">Username (optional)</param>
+        /// <param name="username">Username</param>
         /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.OK, "Shifts fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
@@ -93,24 +93,22 @@ namespace DutyScheduler.Controllers
         {
             if (username == null)
             {
-                var user = GetCurrentUser();
-                if (user == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() {{"username", "Invalid username"}});
-                username = user.UserName;
+                var userObj = GetCurrentUser();
+                if (userObj == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() {{ "user", "Invalusername username"}});
+                username = userObj.UserName;
             }
             
             return GetUserShiftsInCurrentMonth(username, DateTime.Now);
         }
 
         /// <summary>
-        /// Get shifts for the user specified by <paramref name="username"/>
-        /// year specified by <paramref name="year"/> 
-        /// and month specified by <paramref name="month"/>.
+        /// Get shifts for user specified by <paramref name="username"/> and <paramref name="month"/>.
         /// </summary>
-        /// <param name="username">Username (optional)</param>
-        /// <param name="month">Month (optional)</param>
-        /// <param name="year">Year (optional)</param>
+        /// <param name="username">Username</param>
+        /// <param name="month">Month</param>
+        /// <param name="year">Year</param>
         /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.OK, "Replacement applications fetched successfully.")]
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement requests fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to fetch shifts for invaid month.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
         [HttpGet("user/username={username}&month={month}&year={year}")]
@@ -118,9 +116,9 @@ namespace DutyScheduler.Controllers
         {
             if (username == null)
             {
-                var user = GetCurrentUser();
-                if (user == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() { { "username", "Invalid username" } });
-                username = user.UserName;
+                var userObj = GetCurrentUser();
+                if (userObj == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() { { "username", "Invalid user" } });
+                username = userObj.UserName;
             }
 
             var date = year + "-" + month + "-1";
@@ -183,7 +181,7 @@ namespace DutyScheduler.Controllers
             return shift.ToJson(201);
         }
 
-        private ActionResult GetReplacementApplications(Shift shift)
+        private ActionResult GetReplacementRequests(Shift shift)
         {
             // check that user is logged in
             var user = GetCurrentUser();
