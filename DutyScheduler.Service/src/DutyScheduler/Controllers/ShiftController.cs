@@ -82,7 +82,7 @@ namespace DutyScheduler.Controllers
 
 
         /// <summary>
-        /// Get shifts for user specified by <paramref name="username"/>.
+        /// Get current month's shifts for user specified by <paramref name="username"/>.
         /// </summary>
         /// <param name="username">Username</param>
         /// <returns></returns>
@@ -137,7 +137,7 @@ namespace DutyScheduler.Controllers
 
             // check that user in model exists
             _context.Users.Load();
-            var user = _context.Users.FirstOrDefault(u => u.Id == model.UserId);
+            var user = _context.Users.FirstOrDefault(u => u.Id == model.UserName);
             if (user == default(User))
                 return
                     404.ErrorStatusCode(new Dictionary<string, string>()
@@ -159,7 +159,7 @@ namespace DutyScheduler.Controllers
             {
                 Date = date,
                 IsRepleceable = model.IsReplaceable,
-                UserId = model.UserId,
+                UserId = model.UserName,
                 User = user
             };
             _context.Shift.Add(shift);

@@ -8,6 +8,7 @@ using DutyScheduler.Helpers;
 using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.SwaggerGen.Annotations;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -64,17 +65,45 @@ namespace DutyScheduler.Controllers
             return DaysToJson(days);
         }
 
-        private static ActionResult DaysToJson(IEnumerable<Day> days)
+        private User GetCurrentUser()
         {
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return null;
+            var userObj = _context.Users.FirstOrDefault(u => u.Id == user);
+            if (userObj == default(User)) return null;
+            return userObj;
+        }
+
+        private ActionResult DaysToJson(IEnumerable<Day> days)
+        {
+            _context.Shift.Include(s => s.User).AsNoTracking().Load();
+            _context.Preference.Include(s => s.User).AsNoTracking().Load();
+            var user = GetCurrentUser();
+            if (user == default(User))
+            {
+                return new JsonResult(days.Select(d => new DayViewModel()
+                {
+                    Date = d.Date.ToString(DateFormat),
+                    Weekday = d.WeekDay,
+                    Type = d.Type,
+                    Name = d.Name,
+                    IsReplaceable = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.IsRepleceable,
+                    IsPrefered = null,
+                    ShiftId = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.Id,
+                    Scheduled = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.User.SerializeUser()
+                }));
+            }
             return new JsonResult(days.Select(d => new DayViewModel()
             {
                 Date = d.Date.ToString(DateFormat),
                 Weekday = d.WeekDay,
                 Type = d.Type,
                 Name = d.Name,
-                IsReplaceable = d.IsReplaceable,
-                Scheduled = d.Scheduled,
-                IsPrefered = d.IsPrefered
+                IsReplaceable = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.IsRepleceable,
+                IsPrefered = _context.Preference.FirstOrDefault(p => p.Date.Date == d.Date.Date && user != default(User) && p.UserId == user.Id)?.IsPreferred,
+                ShiftId = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.Id,
+                Scheduled = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.User.SerializeUser()
             }));
         }
 
@@ -96,5 +125,6 @@ namespace DutyScheduler.Controllers
             }
             return list;
         }
+
     }
 }

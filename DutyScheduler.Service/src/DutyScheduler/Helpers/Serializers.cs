@@ -11,8 +11,9 @@ namespace DutyScheduler.Helpers
 
         #region replacement request   
 
-        private static object SerializeReplacementRequest(ReplacementRequest request)
+        public static object SerializeReplacementRequest(this ReplacementRequest request)
         {
+            if (request == default(ReplacementRequest)) return new { };
             return new
             {
                 id = request.Id,
@@ -62,8 +63,9 @@ namespace DutyScheduler.Helpers
 
         #region user
 
-        private static object SerializeUser(User user)
+        public static object SerializeUser(this User user)
         {
+            if (user == default(User)) return new { };
             return new
             {
                 username = user.UserName,
@@ -96,8 +98,9 @@ namespace DutyScheduler.Helpers
 
         #region shift
 
-        private static object SerializeShift(Shift shift)
+        public static object SerializeShift(this Shift shift)
         {
+            if (shift == default(Shift)) return new {};
             return new
             {
                 id = shift.Id,
@@ -109,6 +112,8 @@ namespace DutyScheduler.Helpers
 
         private static IEnumerable<object> SerializeShifts(IEnumerable<Shift> shifts)
         {
+            if (shifts == null) return new object[1];
+
             return shifts.Select(s => new
             {
                 id = s.Id,
@@ -162,8 +167,9 @@ namespace DutyScheduler.Helpers
 
         #region preference
 
-        private static object SeralizePreference(Preference preference)
+        public static object SeralizePreference(this Preference preference)
         {
+            if (preference == default(Preference)) return new { };
             return new
             {
                 id = preference.Id,

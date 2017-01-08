@@ -1,4 +1,6 @@
-﻿namespace DutyScheduler.ViewModels
+﻿using DutyScheduler.Models;
+
+namespace DutyScheduler.ViewModels
 {
     public class DayViewModel
     {
@@ -7,7 +9,8 @@
         public string Type { get; set; }
         public string Name { get; set; }
         public bool? IsPrefered { get; set; }
-        public bool IsReplaceable { get; set; }
-        public string Scheduled { get; set; }
+        public bool? IsReplaceable { get; set; }
+        public object Scheduled { get; set; }
+        public int? ShiftId { get; set; }
     }
 }

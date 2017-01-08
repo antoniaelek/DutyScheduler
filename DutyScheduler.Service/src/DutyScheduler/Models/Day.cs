@@ -14,11 +14,11 @@ namespace DutyScheduler.Models
 
         public string WeekDay => Date.DayOfWeek.ToString();
 
-        public bool IsReplaceable { get; set; }
+        //public bool IsReplaceable { get; set; }
 
-        public bool? IsPrefered { get; set; }
+        //public bool? IsPrefered { get; set; }
 
-        public string Scheduled { get; set; }
+        //public Shift Scheduled { get; set; }
 
         public override string ToString()
         {
