@@ -10,7 +10,7 @@ namespace DutyScheduler.ViewModels
         public string Name { get; set; }
         public bool? IsPrefered { get; set; }
         public bool? IsReplaceable { get; set; }
-        public object Scheduled { get; set; }
         public int? ShiftId { get; set; }
+        public object Scheduled { get; set; }
     }
 }
