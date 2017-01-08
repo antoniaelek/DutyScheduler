@@ -78,9 +78,11 @@ namespace DutyScheduler.Helpers
             };
         }
 
-        public static JsonResult ToJson(this User user, int statusCode = 200)
+        public static IEnumerable<object> SerializeUsers(this IEnumerable<User> users)
         {
-            var json = new JsonResult(new
+            if (users == null) return new object[1];
+
+            return users.Select(user => new
             {
                 username = user.UserName,
                 name = user.Name,
@@ -90,6 +92,18 @@ namespace DutyScheduler.Helpers
                 office = user.Office,
                 isAdmin = user.IsAdmin
             });
+        }
+
+        public static JsonResult ToJson(this User user, int statusCode = 200)
+        {
+            var json = new JsonResult(user.SerializeUser());
+            json.StatusCode = statusCode;
+            return json;
+        }
+
+        public static JsonResult ToJson(this IEnumerable<User> users, int statusCode = 200)
+        {
+            var json = new JsonResult(users.SerializeUsers());
             json.StatusCode = statusCode;
             return json;
         }
@@ -110,7 +124,7 @@ namespace DutyScheduler.Helpers
             };
         }
 
-        private static IEnumerable<object> SerializeShifts(IEnumerable<Shift> shifts)
+        public static IEnumerable<object> SerializeShifts(this IEnumerable<Shift> shifts)
         {
             if (shifts == null) return new object[1];
 

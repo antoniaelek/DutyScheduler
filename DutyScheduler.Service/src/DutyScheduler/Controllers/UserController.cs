@@ -52,6 +52,20 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
+        /// Get all users.
+        /// </summary>
+        /// <returns>Users.</returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Users successfully fetched.")]
+        [HttpGet]
+        [AllowAnonymous]
+        public JsonResult Get()
+        {
+            _context.Users.Load();
+            var users = _context.Users.ToList();
+            return users.ToJson();
+        }
+
+        /// <summary>
         /// Register.
         /// </summary>
         /// <param name="viewModel">User profile to be created.</param>
