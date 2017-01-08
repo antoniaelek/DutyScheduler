@@ -76,8 +76,57 @@ namespace DutyScheduler.Controllers
         [HttpGet("{id}/replacement")]
         public ActionResult Get(int id)
         {
-            _context.Shift.AsNoTracking().Load();
+            _context.Shift.Include(s=>s.User).AsNoTracking().Load();
             return GetReplacementApplications(_context.Shift.FirstOrDefault(s => s.Id == id));
+        }
+
+
+        /// <summary>
+        /// Get shifts for the user specified by <paramref name="username"/>.
+        /// </summary>
+        /// <param name="username">Username (optional)</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Shifts fetched successfully.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
+        [HttpGet("user/{username}")]
+        public ActionResult GetCurrentShifts(string username)
+        {
+            if (username == null)
+            {
+                var user = GetCurrentUser();
+                if (user == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() {{"username", "Invalid username"}});
+                username = user.UserName;
+            }
+            
+            return GetUserShiftsInCurrentMonth(username, DateTime.Now);
+        }
+
+        /// <summary>
+        /// Get shifts for the user specified by <paramref name="username"/>
+        /// year specified by <paramref name="year"/> 
+        /// and month specified by <paramref name="month"/>.
+        /// </summary>
+        /// <param name="username">Username (optional)</param>
+        /// <param name="month">Month (optional)</param>
+        /// <param name="year">Year (optional)</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Replacement applications fetched successfully.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to fetch shifts for invaid month.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
+        [HttpGet("user/username={username}&month={month}&year={year}")]
+        public ActionResult GetShifts(string username, int month, int year)
+        {
+            if (username == null)
+            {
+                var user = GetCurrentUser();
+                if (user == default(User)) return 404.ErrorStatusCode(new Dictionary<string, string>() { { "username", "Invalid username" } });
+                username = user.UserName;
+            }
+
+            var date = year + "-" + month + "-1";
+            if (!date.ValidateDate()) return 400.ErrorStatusCode(new Dictionary<string, string>() { { "date", "Invalid date" } });
+
+            return GetUserShiftsInCurrentMonth(username, new DateTime(year, month, 1));
         }
 
         private ActionResult CreateShift(ShiftViewModel model)
@@ -151,6 +200,15 @@ namespace DutyScheduler.Controllers
             return shift.ToJson(requests);
         }
 
+        private ActionResult GetUserShiftsInCurrentMonth(string username, DateTime date)
+        {
+            _context.Shift.Include(s => s.User).AsNoTracking().Load();
+            IEnumerable<Shift> ret = _context.Shift.Where(s => s.UserId == username && 
+                                                s.Date.Month == date.Month && 
+                                                s.Date.Year == date.Year);
+            if (ret == null) ret = new List<Shift>();
+            return ret.ToJson();
+        }
 
         private ActionResult SetReplaceable(Shift entry, bool setReplaceable)
         {

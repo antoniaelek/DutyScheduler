@@ -107,6 +107,17 @@ namespace DutyScheduler.Helpers
             };
         }
 
+        private static IEnumerable<object> SerializeShifts(IEnumerable<Shift> shifts)
+        {
+            return shifts.Select(s => new
+            {
+                id = s.Id,
+                userId = s.UserId,
+                date = s.Date.ToString(DateFormat),
+                isReplaceable = s.IsRepleceable,
+            });
+        }
+
         public static JsonResult ToJson(this Shift shift, int statusCode = 200)
         {
             var user = SerializeUser(shift.User);
@@ -122,6 +133,12 @@ namespace DutyScheduler.Helpers
             return json;
         }
 
+        public static JsonResult ToJson(this IEnumerable<Shift> shifts, int statusCode = 200)
+        {
+            var json = new JsonResult(SerializeShifts(shifts));
+            json.StatusCode = statusCode;
+            return json;
+        }
 
 
         public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200) // todo
