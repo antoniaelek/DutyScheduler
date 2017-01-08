@@ -141,7 +141,7 @@ namespace DutyScheduler.Helpers
         }
 
 
-        public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200) // todo
+        public static JsonResult ToJson(this Shift shift, List<ReplacementRequest> requests,  int statusCode = 200)
         {
             var replacementRequests = SerializeReplacementRequests(requests);
             var user = SerializeUser(shift.User);

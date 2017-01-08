@@ -34,7 +34,9 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.Created, "Request successfully saved.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send request for own shift, or a non replaceable shift, or the shift that already has identical request by this user.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to send request for own shift, or a non replaceable shift, " +
+                                                    "or the shift that already has identical request by this user. " +
+                                                    "Or trying to switch date when user has no shift scheduled")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to send request for non existing shift.")]
         [Authorize]
         [HttpPost]
@@ -43,6 +45,21 @@ namespace DutyScheduler.Controllers
             return RequestReplacement(shift);
         }
 
+
+        /// <summary>
+        /// Accept replacement.
+        /// </summary>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.Created, "Replacement successfully performed.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to accept a non existing replacement request, or other errors.")]
+        [Authorize]
+        [HttpPost("accept")]
+        public ActionResult Accept([FromBody]AcceptReplacementRequestViewModel shift)
+        {
+            return AcceptReplacement(shift.RequestId);
+        }
 
         /// <summary>
         /// Delete replacement request specified by <paramref name="request"/>
@@ -90,6 +107,68 @@ namespace DutyScheduler.Controllers
         public ActionResult Get(string user, int shift)
         {
             return GetReplacementRequests(user, shift);
+        }
+
+
+        private ActionResult AcceptReplacement(int requestId)
+        {
+            // check that user is logged in
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode();
+
+            // check that request which we are accepting exist
+            _context.ReplacementRequest.Include(r => r.User).Include(r => r.Shift).Load();
+            var request = _context.ReplacementRequest.FirstOrDefault(r => r.Id == requestId);
+
+            if (request == default(ReplacementRequest))
+                return 404.ErrorStatusCode(new Dictionary<string, string>() { {"request","Request not found."} });
+
+            // check that shift that the request refers to belongs to current user
+            if (request.Shift.UserId != user.Id)
+                return 403.ErrorStatusCode(new Dictionary<string, string>() { { "request", "Current user is not allowed to accept the specified request." } });
+
+            // if replacing date set, check that shift exists
+            _context.Shift.Include(s => s.User).Load();
+            Shift otherShift = null;
+            if (request.Date != null)
+            {
+                otherShift = _context.Shift.FirstOrDefault(s => s.UserId == request.UserId && s.Date.Date == request.Date.Value.Date);
+                if (otherShift == default(Shift))
+                    return 404.ErrorStatusCode(new Dictionary<string, string>() { { "shift", "Unable to accept replacement request - replacing shift not found." } });
+            }
+
+            // switch users
+            var shiftToChange = _context.Shift.FirstOrDefault(s => s.Id == request.ShiftId);
+            shiftToChange.UserId = request.UserId;
+            shiftToChange.User = _context.Users.FirstOrDefault(u => u.Id == shiftToChange.UserId);
+
+            if (request.Date != null && otherShift != null)
+            {
+                otherShift.UserId = user.Id;
+                otherShift.User = _context.Users.FirstOrDefault(u => u.Id == otherShift.UserId);
+            }
+
+            // delete other requests
+            var others = _context.ReplacementRequest.Where(r => r.ShiftId == request.ShiftId);
+            _context.ReplacementRequest.RemoveRange(others);
+
+            // add to change to history
+            _context.ReplacementHistory.Include(r => r.ReplacedUser).Include(r => r.ReplacingUser).Load();
+            var history = new ReplacementHistory()
+            {
+                ReplacedUser = user,
+                ReplacedUserId = user.Id,
+                ReplacingUser = request.User,
+                ReplacingUserId = request.UserId,
+                Date = request.Shift.Date,
+                DateCreated = DateTime.Now
+            };
+            _context.ReplacementHistory.Add(history);
+
+            // save changes
+            _context.SaveChanges();
+
+            return shiftToChange.ToJson();
         }
 
         private ActionResult GetReplacementRequests(string userId, int shiftid)
@@ -178,6 +257,7 @@ namespace DutyScheduler.Controllers
 
             // is date set?
             DateTime? date = null;
+
             // check date
             if (model.Date != null)
             {
@@ -193,7 +273,18 @@ namespace DutyScheduler.Controllers
                         {
                             {"date", "Unable to create shift for past dates."}
                         });
+
+
+                // check that date belongs to user's shift
+                var ownShift = _context.Shift.FirstOrDefault(s => s.Date == date.Value);
+                if (ownShift == default(Shift))
+                    return
+                        400.ErrorStatusCode(new Dictionary<string, string>()
+                        {
+                        {"date", "Unable to request replacement becaause user has no shift scheduled on specified date."}
+                        });
             }
+
 
             // make sure this request does not already exist
             _context.ReplacementRequest.Include(r=>r.Shift).Load();
