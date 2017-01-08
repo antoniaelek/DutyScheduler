@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -137,6 +138,51 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
+        /// Grant to or revoke admin rigts from user with the specified <paramref name="username"/>.
+        /// </summary>
+        /// <param name="username">Unique identifier of the user.</param>
+        /// <param name="viewModel">Updated user data.</param>
+        /// <returns>JSON user data.</returns>
+        [SwaggerResponse(HttpStatusCode.OK, "User admin rights successfully updated.")]
+        [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [HttpPut("admin/{username}")]
+        [Authorize]
+        public JsonResult AdminRights(string username, [FromBody]AdminRightsViewModel viewModel)
+        {
+            if (viewModel == default(AdminRightsViewModel)) return 204.ErrorStatusCode();
+            return UpdateAdminRights(username, viewModel.SetAdmin);
+        }
+
+        private JsonResult UpdateAdminRights(string username, bool? setAdmin)
+        {
+            // check that user is logged in
+            var currUser = GetCurrentUser();
+            if (currUser == default(User)) return 401.ErrorStatusCode();
+
+            // check that the current user is admin
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode();
+
+            // check that user in model exists
+            _context.Users.Load();
+            var user = _context.Users.FirstOrDefault(u => u.Id == username);
+            if (user == default(User))
+                return
+                    404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"user", "User with the specified username not found"}
+                    });
+
+            if (setAdmin == null) return 304.SuccessStatusCode();
+
+            // update
+            user.IsAdmin = setAdmin.Value;
+            _context.SaveChanges();
+            return user.ToJson();
+        }
+
+        /// <summary>
         /// Delete user with the specified <paramref name="username"/>.
         /// </summary>
         /// <param name="username">Unique identifier of the user.</param>
@@ -174,6 +220,16 @@ namespace DutyScheduler.Controllers
             // This user does not have enough rights
             if (user.UserName != id) return 403.ErrorStatusCode();
             return 200.SuccessStatusCode();
+        }
+
+        private User GetCurrentUser()
+        {
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return null;
+            var userObj = _context.Users.FirstOrDefault(u => u.Id == user);
+            if (userObj == default(User)) return null;
+            return userObj;
         }
     }
 }
