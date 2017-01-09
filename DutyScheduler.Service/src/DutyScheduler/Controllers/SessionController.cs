@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DutyScheduler.Helpers;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.SwaggerGen.Annotations;
@@ -54,6 +57,19 @@ namespace DutyScheduler.Controllers
             await _signInManager.SignOutAsync();
         }
 
+        /// <summary>
+        /// Get logged in user
+        /// </summary>
+        /// <returns>User object.</returns>
+        [SwaggerResponse(HttpStatusCode.OK, "User object.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [HttpGet]
+        [Authorize]
+        public JsonResult Get()
+        {
+            var user = GetCurrentUser();
+            return user.ToJson();
+        }
 
         /// <summary>
         /// Login either using the username and password or email and password combination.
@@ -87,13 +103,15 @@ namespace DutyScheduler.Controllers
                          (user == null && viewModel.UserName != null)) 
                     user = await _userManager.FindByNameAsync(viewModel.UserName);
 
+                if (user == null) return 401.ErrorStatusCode(new Dictionary<string, string>() { { "login", "Invalid credentials combination." } });
+
                 var result = await _signInManager.
-                    PasswordSignInAsync(user.UserName,
+                    PasswordSignInAsync(user?.UserName,
                                         viewModel.Password,
                                         true, false);
                 if (result.Succeeded)
                 {
-                    user = await _userManager.FindByEmailAsync(user.Email);
+                    user = await _userManager.FindByEmailAsync(user?.Email);
                     return user.ToJson();
                 }
             }
@@ -106,6 +124,16 @@ namespace DutyScheduler.Controllers
             var ret = new JsonResult(new { Success = false, Errors = allErrors });
             ret.StatusCode = 400;
             return ret;
+        }
+
+        private User GetCurrentUser()
+        {
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return null;
+            var userObj = _context.Users.FirstOrDefault(u => u.Id == user);
+            if (userObj == default(User)) return null;
+            return userObj;
         }
     }
 }
