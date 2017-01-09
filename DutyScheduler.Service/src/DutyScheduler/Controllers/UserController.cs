@@ -44,6 +44,7 @@ namespace DutyScheduler.Controllers
         /// <param name="username">Unique identifier of the user.</param>
         /// <returns>JSON user data.</returns>
         [HttpGet("{username}")]
+        [SwaggerResponse(HttpStatusCode.OK, "Users successfully fetched.")]
         [AllowAnonymous]
         public async Task<JsonResult> Get(string username)
         {
@@ -112,6 +113,8 @@ namespace DutyScheduler.Controllers
         /// <param name="viewModel">New user data.</param>
         /// <returns>JSON user data.</returns>
         [SwaggerResponse(HttpStatusCode.OK, "User details successfully saved.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [HttpPut("{username}")]
         [Authorize]
         public async Task<JsonResult> Update(string username, [FromBody]UpdateUserViewModel viewModel)
@@ -155,33 +158,6 @@ namespace DutyScheduler.Controllers
             return UpdateAdminRights(username, viewModel.SetAdmin);
         }
 
-        private JsonResult UpdateAdminRights(string username, bool? setAdmin)
-        {
-            // check that user is logged in
-            var currUser = GetCurrentUser();
-            if (currUser == default(User)) return 401.ErrorStatusCode();
-
-            // check that the current user is admin
-            if (!currUser.IsAdmin) return 403.ErrorStatusCode();
-
-            // check that user in model exists
-            _context.Users.Load();
-            var user = _context.Users.FirstOrDefault(u => u.Id == username);
-            if (user == default(User))
-                return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"user", "User with the specified username not found"}
-                    });
-
-            if (setAdmin == null) return 304.SuccessStatusCode();
-
-            // update
-            user.IsAdmin = setAdmin.Value;
-            _context.SaveChanges();
-            return user.ToJson();
-        }
-
         /// <summary>
         /// Delete user with the specified <paramref name="username"/>.
         /// </summary>
@@ -209,6 +185,33 @@ namespace DutyScheduler.Controllers
 
             await _userManager.DeleteAsync(user);
             return 200.SuccessStatusCode();
+        }
+
+        private JsonResult UpdateAdminRights(string username, bool? setAdmin)
+        {
+            // check that user is logged in
+            var currUser = GetCurrentUser();
+            if (currUser == default(User)) return 401.ErrorStatusCode();
+
+            // check that the current user is admin
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode();
+
+            // check that user in model exists
+            _context.Users.Load();
+            var user = _context.Users.FirstOrDefault(u => u.Id == username);
+            if (user == default(User))
+                return
+                    404.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"user", "User with the specified username not found"}
+                    });
+
+            if (setAdmin == null) return 304.SuccessStatusCode();
+
+            // update
+            user.IsAdmin = setAdmin.Value;
+            _context.SaveChanges();
+            return user.ToJson();
         }
 
         private async Task<JsonResult> CheckUserCredentials(string id)

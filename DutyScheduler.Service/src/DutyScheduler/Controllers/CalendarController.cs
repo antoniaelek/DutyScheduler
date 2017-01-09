@@ -15,6 +15,7 @@ using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class CalendarController : Controller
     {

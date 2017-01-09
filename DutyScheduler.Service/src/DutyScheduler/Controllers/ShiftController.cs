@@ -14,6 +14,7 @@ using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class ShiftController : Controller
     {
@@ -88,6 +89,7 @@ namespace DutyScheduler.Controllers
         /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.OK, "Shifts fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
+        [AllowAnonymous]
         [HttpGet("user/{username}")]
         public ActionResult GetCurrentShifts(string username)
         {           
@@ -104,6 +106,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.OK, "Replacement requests fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to fetch shifts for invaid month.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
+        [AllowAnonymous]
         [HttpGet("user/username={username}&month={month}&year={year}")]
         public ActionResult GetShifts(string username, int month, int year)
         {
