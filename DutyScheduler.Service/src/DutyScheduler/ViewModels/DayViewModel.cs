@@ -1,4 +1,5 @@
-﻿using DutyScheduler.Models;
+﻿using System.Collections.Generic;
+using DutyScheduler.Models;
 
 namespace DutyScheduler.ViewModels
 {
@@ -11,6 +12,7 @@ namespace DutyScheduler.ViewModels
         public bool? IsPrefered { get; set; }
         public bool? IsReplaceable { get; set; }
         public int? ShiftId { get; set; }
+        public IEnumerable<object> ReplacementRequests { get; set; }
         public object Scheduled { get; set; }
     }
 }

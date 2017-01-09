@@ -196,7 +196,7 @@ namespace DutyScheduler.Controllers
                         {"shift", "The specified shift does not exist"}
                     });
 
-            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).AsNoTracking().Load();
+            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
 
             var entries = _context.ReplacementRequest.Where(r => r.UserId == userId && r.ShiftId == shiftid);
 

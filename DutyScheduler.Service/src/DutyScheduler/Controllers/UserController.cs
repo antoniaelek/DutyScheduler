@@ -78,6 +78,18 @@ namespace DutyScheduler.Controllers
         [AllowAnonymous]
         public async Task<JsonResult> Create([FromBody]RegisterViewModel viewModel)
         {
+            _context.Users.Load();
+            var usernames = _context.Users.Select(u => u.NormalizedUserName);
+            if (usernames.Contains(viewModel.UserName.ToUpper()))
+                ModelState.AddModelError("UserName", "The specified username is taken.");
+
+            var emails = _context.Users.Select(u => u.NormalizedEmail);
+            if (emails.Contains(viewModel.Email.ToUpper()))
+                ModelState.AddModelError("Email", "There already exists an account registered with the specified email.");
+
+            if (viewModel.Password.Length < 4)
+                ModelState.AddModelError("Password", "Password must contain at least 4 characters.");
+
             if (ModelState.IsValid)
             {
                 var user = new User
@@ -90,6 +102,7 @@ namespace DutyScheduler.Controllers
                     Phone = viewModel.Phone
                 };
 
+                
                 var result = await _userManager.CreateAsync(user, viewModel.Password);
 
                 if (result.Succeeded)

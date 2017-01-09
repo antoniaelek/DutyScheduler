@@ -23,8 +23,20 @@ namespace DutyScheduler.Helpers
             };
         }
 
-        private static IEnumerable<object> SerializeReplacementRequests(IEnumerable<ReplacementRequest> requests)
+        public static IEnumerable<object> SerializeReplacementRequests(this IEnumerable<ReplacementRequest> requests, bool serializeUser = false)
         {
+            if (serializeUser == true)
+            {
+                return requests.Select(r => new
+                {
+                    id = r.Id,
+                    shiftId = r.ShiftId,
+                    userId = r.UserId,
+                    date = r.Date?.ToString(DateFormat),
+                    user = r.User.SerializeUser()
+                });
+            }
+
             return requests.Select(r => new
             {
                 id = r.Id,
@@ -33,6 +45,7 @@ namespace DutyScheduler.Helpers
                 date = r.Date?.ToString(DateFormat)
             });
         }
+
 
         public static JsonResult ToJson(this ReplacementRequest request, int statusCode = 200)
         {
