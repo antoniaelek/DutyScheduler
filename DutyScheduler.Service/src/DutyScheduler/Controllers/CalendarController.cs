@@ -78,8 +78,8 @@ namespace DutyScheduler.Controllers
 
         private ActionResult DaysToJson(IEnumerable<Day> days)
         {
-            _context.Shift.Include(s => s.User).AsNoTracking().Load();
-            _context.Preference.Include(s => s.User).AsNoTracking().Load();
+            _context.Shift.Include(s => s.User).Load();
+            _context.Preference.Include(s => s.User).Load();
             var user = GetCurrentUser();
             if (user == default(User))
             {
