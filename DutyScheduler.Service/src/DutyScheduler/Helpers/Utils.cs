@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using DutyScheduler.Models;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,11 @@ namespace DutyScheduler.Helpers
 {
     public static class Utils
     {
+        public static string GetUserId(this ClaimsPrincipal principal)
+        {
+            return principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
         public static bool ValidateDate(this string date)
         {
             if (date == null) return false;

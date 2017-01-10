@@ -12,11 +12,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
 using DutyScheduler.Middlewares;
-using Microsoft.AspNetCore.Routing;
 
 namespace DutyScheduler
 {
-    public class Startup //: ICalendar
+    public class Startup
     {
         
         public Startup(IHostingEnvironment env)
@@ -128,10 +127,11 @@ namespace DutyScheduler
             options.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(options);
             app.UseStaticFiles();
-            app.UseWebSockets();
-            app.UseWebSocketHandler();
 
             app.UseIdentity().UseCookieAuthentication();
+
+            app.UseWebSockets();
+            app.UseWebSocketHandler();
 
             app.UseMvc(routes =>
             {
@@ -139,6 +139,7 @@ namespace DutyScheduler
                     name: "default",
                     template: "{controller=home}/{action=index}/{id?}");
             });
+
             app.UseSwagger();
             app.UseSwaggerUi();
         }
