@@ -33,21 +33,26 @@ namespace DutyScheduler.Models
 
         private void GetMonth(DateTime day)
         {
-            // add holidays and days before holidays
+            // add holidays
             var holidays = new HolidayCalculator(day, Utils.ReadConfig("Holidays", "Path"));
             foreach (HolidayCalculator.Holiday h in holidays.OrderedHolidays)
             {
                 if (h.Date.Month == day.Month) Holidays.Add(new Holiday(h.Name, h.Date));
+                // and days before holidays if theye're not weekends or holidays
                 var yesterday = h.Date.AddDays(-1);
                 if (yesterday.Month == day.Month &&
-                    Holidays.FirstOrDefault(hl => hl.Date == yesterday) == default(Holiday))
+                    Holidays.FirstOrDefault(hl => hl.Date == yesterday) == default(Holiday) && 
+                    yesterday.DayOfWeek != DayOfWeek.Saturday &&
+                    yesterday.DayOfWeek != DayOfWeek.Sunday)
                     SpecialDays.Add(new SpecialDay("Day before " + h.Name, yesterday.Date));
             }
 
             // if the last day in month is day before holiday
             var firstInNextMonth = Last.AddDays(1);
             var hol = Holidays.FirstOrDefault(h => h.Date == firstInNextMonth);
-            if (hol != null)
+            if (hol != null &&
+                Last.Date.DayOfWeek != DayOfWeek.Saturday &&
+                Last.Date.DayOfWeek != DayOfWeek.Sunday)
                 SpecialDays.Add(new SpecialDay("Day before " + hol.Name, Last.Date));
 
             // get all fridays, if they're not holidays

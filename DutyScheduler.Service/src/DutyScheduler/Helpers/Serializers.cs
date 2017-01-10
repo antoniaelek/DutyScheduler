@@ -25,6 +25,7 @@ namespace DutyScheduler.Helpers
 
         public static IEnumerable<object> SerializeReplacementRequests(this IEnumerable<ReplacementRequest> requests, bool serializeUser = false)
         {
+            if (requests == null) return new object[1];
             if (serializeUser == true)
             {
                 return requests.Select(r => new

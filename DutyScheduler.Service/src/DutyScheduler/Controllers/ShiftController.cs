@@ -131,6 +131,15 @@ namespace DutyScheduler.Controllers
                         {"date", "Unable to create shift for past dates."}
                     });
 
+            // check if date is holiday
+            var month = new Month(date);
+            if (month.Holidays.Select(d=>d.Date).Contains(date))
+                return
+                    400.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"date", "Unable to create shift on a holiday."}
+                    });
+
             // check that user is logged in
             var currUser = GetCurrentUser();
             if (currUser == default(User)) return 401.ErrorStatusCode();
@@ -157,6 +166,7 @@ namespace DutyScheduler.Controllers
                     {
                         {"date", "Shift for that date already exists"}
                     });
+
 
             shift = new Shift()
             {
