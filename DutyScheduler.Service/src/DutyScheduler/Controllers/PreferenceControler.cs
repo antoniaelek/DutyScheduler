@@ -29,6 +29,29 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
+        /// Create user's preference for the specified date.
+        /// </summary>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Preference saved successfully.")]
+        [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date, or the datw which already has preference set.")]
+        [Authorize]
+        [HttpPost]
+        public ActionResult Post([FromBody]CreatePreferenceViewModel model)
+        {
+            if (model == default(CreatePreferenceViewModel)) return NoContent();
+
+            if (!model.Date.ValidateDate())
+                return 400.ErrorStatusCode(
+                    new Dictionary<string, string>() { { "date", "Invalid date." } }
+                );
+
+            return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
+        }
+
+        /// <summary>
         /// Create or update user's preference.
         /// </summary>
         /// <returns></returns>
@@ -59,26 +82,26 @@ namespace DutyScheduler.Controllers
             return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
         }
 
-        ///// <summary>
-        ///// Update user's preference specified by <paramref name="id"/>.
-        ///// </summary>
-        ///// <param name="id">Preference id</param>
-        ///// <param name="model">Preference</param>
-        ///// <returns></returns>
-        //[SwaggerResponse(HttpStatusCode.Created, "Preference saved successfully.")]
-        //[SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
-        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        //[SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        //[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
-        //[SwaggerResponse(HttpStatusCode.NotFound, "Trying to update a non existing preference.")]
-        //[Authorize]
-        //[HttpPut("{id}")]
-        //public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
-        //{
-        //    if (model == default(UpdatePreferenceViewModel)) return NoContent();
-        //    _context.Preference.Include(p => p.User).Load();
-        //    return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
-        //}
+        /// <summary>
+        /// Update user's preference specified by <paramref name="id"/>.
+        /// </summary>
+        /// <param name="id">Preference id</param>
+        /// <param name="model">Preference</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.Created, "Preference saved successfully.")]
+        [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to update a non existing preference.")]
+        [Authorize]
+        [HttpPut("{id}")]
+        public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
+        {
+            if (model == default(UpdatePreferenceViewModel)) return NoContent();
+            _context.Preference.Include(p => p.User).Load();
+            return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
+        }
 
         /// <summary>
         /// Delete user's preference specified by <paramref name="id"/>
