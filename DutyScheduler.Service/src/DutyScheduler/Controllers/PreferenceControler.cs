@@ -29,7 +29,8 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Create user's preference for the specified date.
+        /// Create or update user's preference. To create new, set Date and IsPrefered 
+        /// <br></br>preoperties, and to update existing, set Id and IsPrefered properties. 
         /// </summary>
         /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.OK, "Preference saved successfully.")]
@@ -38,39 +39,46 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date, or the datw which already has preference set.")]
         [Authorize]
-        [HttpPost]
-        public ActionResult Post([FromBody]CreatePreferenceViewModel model)
+        [HttpPut]
+        public ActionResult Post([FromBody]UpdatePreferenceViewModel model)
         {
-            if (model == default(CreatePreferenceViewModel)) return NoContent();
+            if (model == default(UpdatePreferenceViewModel)) return NoContent();
 
+            _context.Preference.Include(p => p.User).Load();
+
+            // if already exists, update
+            var preference = model.Id != null ? _context.Preference.FirstOrDefault(p => p.Id == model.Id) : null;
+            if (preference != default(Preference))
+                return UpdatePrefered(preference, model.SetPrefered);
+
+            // if not, create new
             if (!model.Date.ValidateDate())
                 return 400.ErrorStatusCode(
                     new Dictionary<string, string>() { { "date", "Invalid date." } }
                 );
-           
             return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
         }
 
-        /// <summary>
-        /// Update user's preference specified by <paramref name="id"/>.
-        /// </summary>
-        /// <param name="id">Preference id</param>
-        /// <param name="model">Preference</param>
-        /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.Created, "Preference saved successfully.")]
-        [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
-        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
-        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to update a non existing preference.")]
-        [Authorize]
-        [HttpPut("{id}")]
-        public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
-        {
-            if (model == default(UpdatePreferenceViewModel)) return NoContent();
-            _context.Preference.Include(p => p.User).Load();
-            return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
-        }
+        ///// <summary>
+        ///// Update user's preference specified by <paramref name="id"/>.
+        ///// </summary>
+        ///// <param name="id">Preference id</param>
+        ///// <param name="model">Preference</param>
+        ///// <returns></returns>
+        //[SwaggerResponse(HttpStatusCode.Created, "Preference saved successfully.")]
+        //[SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
+        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        //[SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        //[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date.")]
+        //[SwaggerResponse(HttpStatusCode.NotFound, "Trying to update a non existing preference.")]
+        //[Authorize]
+        //[HttpPut("{id}")]
+        //public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
+        //{
+        //    if (model == default(UpdatePreferenceViewModel)) return NoContent();
+        //    _context.Preference.Include(p => p.User).Load();
+        //    return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
+        //}
 
         /// <summary>
         /// Delete user's preference specified by <paramref name="id"/>
