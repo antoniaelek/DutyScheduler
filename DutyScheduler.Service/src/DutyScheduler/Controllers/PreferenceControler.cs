@@ -29,8 +29,7 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Create or update user's preference. To create new, set Date and IsPrefered 
-        /// <br></br>preoperties, and to update existing, set Id and IsPrefered properties. 
+        /// Create or update user's preference.
         /// </summary>
         /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.OK, "Preference saved successfully.")]
@@ -40,22 +39,23 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date, or the datw which already has preference set.")]
         [Authorize]
         [HttpPut]
-        public ActionResult Post([FromBody]UpdatePreferenceViewModel model)
+        public ActionResult Put([FromBody]CreateOrUpdatePreferenceViewModel model)
         {
-            if (model == default(UpdatePreferenceViewModel)) return NoContent();
+            if (model == default(CreateOrUpdatePreferenceViewModel)) return NoContent();
 
             _context.Preference.Include(p => p.User).Load();
 
-            // if already exists, update
-            var preference = model.Id != null ? _context.Preference.FirstOrDefault(p => p.Id == model.Id) : null;
-            if (preference != default(Preference))
-                return UpdatePrefered(preference, model.SetPrefered);
-
-            // if not, create new
             if (!model.Date.ValidateDate())
                 return 400.ErrorStatusCode(
                     new Dictionary<string, string>() { { "date", "Invalid date." } }
                 );
+
+            // if already exists, update
+            var preference = _context.Preference.FirstOrDefault(p => p.Date.ToString(DateFormat) == model.Date);
+            if (preference != default(Preference))
+                return UpdatePrefered(preference, model.SetPrefered);
+
+            // if not, create new
             return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
         }
 

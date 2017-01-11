@@ -138,15 +138,17 @@ namespace DutyScheduler.Controllers
                     return 404.ErrorStatusCode(new Dictionary<string, string>() { { "shift", "Unable to accept replacement request - replacing shift not found." } });
             }
 
-            // switch users
+            // switch users and reset isReplaceable
             var shiftToChange = _context.Shift.FirstOrDefault(s => s.Id == request.ShiftId);
             shiftToChange.UserId = request.UserId;
             shiftToChange.User = _context.Users.FirstOrDefault(u => u.Id == shiftToChange.UserId);
+            shiftToChange.IsRepleceable = false;
 
             if (request.Date != null && otherShift != null)
             {
                 otherShift.UserId = user.Id;
                 otherShift.User = _context.Users.FirstOrDefault(u => u.Id == otherShift.UserId);
+                otherShift.IsRepleceable = false;
             }
 
             // delete other requests
