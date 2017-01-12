@@ -6,3 +6,4 @@ DutyScheduler.Service/src/DutyScheduler/obj/
 DutyScheduler.Web/Web/Web/obj/
 *.suo
 DutyScheduler.Web/Web/.vs/
+*.user
