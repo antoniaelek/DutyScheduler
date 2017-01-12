@@ -47,16 +47,19 @@ namespace DutyScheduler.Controllers
             _context.ReplacementHistory.Include(h => h.ReplacedUser).Include(h => h.ReplacingUser).Load();
 
             ICollection<UserStatisticsViewModel> stats = new List<UserStatisticsViewModel>();
-            
+
+            var date = DateTime.Now;
+
             // Get past shifts
-            var shifts = _context.Shift.Where(s => s.UserId == username && s.Date.Year == year);
+            var shifts = _context.Shift.Where(s => s.UserId == username && s.Date.Year == year && s.Date < date);
 
             // replacing
-            var replacing = _context.ReplacementHistory.Where(h => h.ReplacingUserId == username && h.Date.Year == year);
+            var replacing = _context.ReplacementHistory.Where(h => h.ReplacingUserId == username && h.Date.Year == year && h.Date < date);
             
             // replaced
-            var replaced = _context.ReplacementHistory.Where(h => h.ReplacedUserId == username && h.Date.Year == year);
+            var replaced = _context.ReplacementHistory.Where(h => h.ReplacedUserId == username && h.Date.Year == year && h.Date < date);
 
+            // serialize
             var serializedShifts = shifts.Select(s => new {Date = s.Date.ToString(DateFormat), GetDay(s.Date).Type});
 
             var serializedReplacing =
