@@ -206,7 +206,8 @@ namespace DutyScheduler.Controllers
             _context.Shift.Include(s => s.User).AsNoTracking().Load();
             IEnumerable<Shift> ret = _context.Shift.Where(s => s.UserId == username && 
                                                 s.Date.Month == date.Month && 
-                                                s.Date.Year == date.Year);
+                                                s.Date.Year == date.Year)
+												.OrderBy(s => s.Date);
             if (ret == null) ret = new List<Shift>();
             return ret.ToJson();
         }
