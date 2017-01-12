@@ -73,8 +73,11 @@ namespace DutyScheduler.Controllers
                     new Dictionary<string, string>() { { "date", "Invalid date." } }
                 );
 
-            // if already exists, update
-            var preference = _context.Preference.FirstOrDefault(p => p.Date.ToString(DateFormat) == model.Date);
+            var user = GetCurrentUser();
+
+			// if already exists, update
+			var preference = _context.Preference.FirstOrDefault(p => p.Date.ToString(DateFormat) == model.Date && p.UserId == user.Id);
+
             if (preference != default(Preference) && model.SetPrefered != null)
                 return UpdatePrefered(preference, model.SetPrefered.Value);
             if (preference != default(Preference) && model.SetPrefered == null)
