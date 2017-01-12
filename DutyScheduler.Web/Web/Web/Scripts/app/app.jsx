@@ -24,7 +24,6 @@ var App = React.createClass({
 			};
 		}.bind(this))
 		.fail(function (response) {
-			reportError(response);
 			this.setState({ isLoggedIn: false, attemptLogin: false });
 		}.bind(this));
 	},

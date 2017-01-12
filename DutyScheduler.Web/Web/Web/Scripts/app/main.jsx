@@ -32,10 +32,14 @@ var API = {
 };
 
 function reportError(response) {
-	console.log(response);
-	var rObject = response.responseJSON;
-	var errorsObject = rObject.errors;
-	alert(Object.keys(errorsObject).map(function (e) { return errorsObject[e]; }).join("\n"));
+	try {
+		var rObject = response.responseJSON;
+		var errorsObject = rObject.errors;
+		alert(Object.keys(errorsObject).map(function (e) { return errorsObject[e]; }).join("\n"));
+	} catch (e) {
+		alert("An unknown error has occured.");
+		console.warn("Server did not respond with a valid error object.");
+	}
 }
 
 ReactDOM.render(<App />, document.getElementById("app"));
