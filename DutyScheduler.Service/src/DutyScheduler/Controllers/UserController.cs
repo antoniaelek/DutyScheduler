@@ -154,7 +154,7 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Grant to or revoke admin rigts from user with the specified <paramref name="username"/>.
+        /// Admin can grant or revoke admin rigts from user with the specified <paramref name="username"/>.
         /// </summary>
         /// <param name="username">Unique identifier of the user.</param>
         /// <param name="viewModel">Updated user data.</param>
@@ -172,7 +172,7 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Delete user with the specified <paramref name="username"/>.
+        /// Admin can delete user with the specified <paramref name="username"/>.
         /// </summary>
         /// <param name="username">Unique identifier of the user.</param>
         /// <returns>HTTP status code indicating outcome of the delete operation.</returns>
@@ -187,16 +187,12 @@ namespace DutyScheduler.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
             if (user == null) return 401.ErrorStatusCode();
 
-            var isAuthorized = await CheckUserCredentials(user.UserName);
+            if (!user.IsAdmin) return 403.ErrorStatusCode();
 
-            if (isAuthorized.StatusCode != 200 && isAuthorized.StatusCode.HasValue)
-                return isAuthorized.StatusCode.Value.ErrorStatusCode();
+            var userToDelete = await _context.Users.FirstOrDefaultAsync(x => x.UserName == username);
+            if (userToDelete == null) return 404.ErrorStatusCode();
 
-            if (isAuthorized.StatusCode != 200)
-                if (isAuthorized.StatusCode != null) return isAuthorized.StatusCode.Value.ErrorStatusCode();
-                else return 400.ErrorStatusCode();
-
-            await _userManager.DeleteAsync(user);
+            await _userManager.DeleteAsync(userToDelete);
             return 200.SuccessStatusCode();
         }
 
