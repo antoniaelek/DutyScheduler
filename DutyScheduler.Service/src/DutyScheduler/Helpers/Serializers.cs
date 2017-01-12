@@ -202,7 +202,8 @@ namespace DutyScheduler.Helpers
             {
                 id = preference.Id,
                 userId = preference.UserId,
-                isPrefered = preference.IsPreferred
+                isPrefered = preference.IsPreferred,
+                date = preference.Date.ToString(DateFormat)
             };
         }
 
@@ -216,6 +217,7 @@ namespace DutyScheduler.Helpers
                 id = preference.Id,
                 userId = preference.UserId,
                 isPrefered = preference.IsPreferred,
+                date = preference.Date.ToString(DateFormat),
                 user
             });
             json.StatusCode = statusCode;

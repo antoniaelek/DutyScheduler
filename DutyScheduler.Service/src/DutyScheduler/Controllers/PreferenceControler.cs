@@ -75,11 +75,18 @@ namespace DutyScheduler.Controllers
 
             // if already exists, update
             var preference = _context.Preference.FirstOrDefault(p => p.Date.ToString(DateFormat) == model.Date);
-            if (preference != default(Preference))
-                return UpdatePrefered(preference, model.SetPrefered);
-
+            if (preference != default(Preference) && model.SetPrefered != null)
+                return UpdatePrefered(preference, model.SetPrefered.Value);
+            if (preference != default(Preference) && model.SetPrefered == null)
+                return DeletePreference(preference);
             // if not, create new
-            return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered);
+            if (model.SetPrefered != null) return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered.Value);
+            return
+                400.ErrorStatusCode(new Dictionary<string, string>()
+                {
+                    {"SetPrefered", "SetPrefered property not set."},
+                    {"Date", "Date property not set."}
+                });
         }
 
         /// <summary>
