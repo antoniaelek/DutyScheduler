@@ -138,6 +138,10 @@ namespace DutyScheduler.Controllers
                     return 404.ErrorStatusCode(new Dictionary<string, string>() { { "shift", "Unable to accept replacement request - replacing shift not found." } });
             }
 
+            // user that is acceptng replacement request will now lose all requests where they have offered this shift as repalcement
+            var userToLose = _context.ReplacementRequest.Where(r => r.UserId == user.Id && r.Date != null && r.Date == request.Shift.Date);
+            _context.ReplacementRequest.RemoveRange(userToLose);
+
             // switch users and reset isReplaceable
             var shiftToChange = _context.Shift.FirstOrDefault(s => s.Id == request.ShiftId);
             shiftToChange.UserId = request.UserId;
@@ -146,14 +150,18 @@ namespace DutyScheduler.Controllers
 
             if (request.Date != null && otherShift != null)
             {
+                // user whose replacement request is accepted will now lose all requests where they have offered this now swapped date for replacement
+                var otherUserToLose = _context.ReplacementRequest.Where(r => r.UserId == request.UserId && r.Date != null && r.Date == request.Date);
+                _context.ReplacementRequest.RemoveRange(otherUserToLose);
+
                 otherShift.UserId = user.Id;
                 otherShift.User = _context.Users.FirstOrDefault(u => u.Id == otherShift.UserId);
                 otherShift.IsRepleceable = false;
             }
 
-            // delete other requests
-            var others = _context.ReplacementRequest.Where(r => r.ShiftId == request.ShiftId);
-            _context.ReplacementRequest.RemoveRange(others);
+            // delete all requests
+            var reguestsForThisShift = _context.ReplacementRequest.Where(r => r.ShiftId == request.ShiftId);
+            _context.ReplacementRequest.RemoveRange(reguestsForThisShift);
 
             // add to change to history
             _context.ReplacementHistory.Include(r => r.ReplacedUser).Include(r => r.ReplacingUser).Load();
