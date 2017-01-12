@@ -28,7 +28,7 @@ namespace DutyScheduler.Helpers
 			if (requests == null) return new object[1];
 			if (serializeUser == true)
 			{
-				return requests.Select(r => new
+				return requests.OrderBy(r => r.Date).Select(r => new
 				{
 					id = r.Id,
 					shiftId = r.ShiftId,
