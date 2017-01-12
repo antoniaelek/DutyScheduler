@@ -231,6 +231,15 @@ namespace DutyScheduler.Controllers
 
 
             entry.IsRepleceable = setReplaceable;
+
+            if (!setReplaceable)
+            {
+                // delete associated replacement requests 
+                _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
+                var requests = _context.ReplacementRequest.Where(r => r.Shift.Id == entry.Id);
+                _context.RemoveRange(requests);
+            }
+
             _context.SaveChanges();
             return entry.ToJson();
         }

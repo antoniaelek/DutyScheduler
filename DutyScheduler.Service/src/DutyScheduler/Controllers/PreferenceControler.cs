@@ -80,8 +80,10 @@ namespace DutyScheduler.Controllers
 
             if (preference != default(Preference) && model.SetPrefered != null)
                 return UpdatePrefered(preference, model.SetPrefered.Value);
+
             if (preference != default(Preference) && model.SetPrefered == null)
                 return DeletePreference(preference);
+
             // if not, create new
             if (model.SetPrefered != null) return CreatePrefered(DateTime.Parse(model.Date), model.SetPrefered.Value);
             return
@@ -126,7 +128,6 @@ namespace DutyScheduler.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            _context.Preference.Include(p => p.User).Load();
             return DeletePreference(_context.Preference.FirstOrDefault(p => p.Id == id));
         }
 
@@ -197,6 +198,9 @@ namespace DutyScheduler.Controllers
 
         private ActionResult DeletePreference(Preference preference)
         {
+            _context.Preference.Include(p => p.User).Load();
+           
+
             // check that user is logged in
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode();
