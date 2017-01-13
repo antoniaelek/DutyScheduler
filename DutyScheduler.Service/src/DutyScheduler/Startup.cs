@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using DutyScheduler.Helpers;
 using DutyScheduler.Models;
 using DutyScheduler.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -83,6 +84,12 @@ namespace DutyScheduler
                             ctx.Response.StatusCode == (int)HttpStatusCode.OK)
                         {
                             ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            //var body = "{\"" + Constants.Unauthorized.Key + "\":\"" + Constants.Unauthorized.Value + "\"}";
+                            //var json = new
+                            //{
+                            //    errors = "bla"
+                            //};
+                            //ctx.Response.Body = json.ToString().GenerateStreamFromString();
                         }
                         else
                         {
@@ -129,7 +136,7 @@ namespace DutyScheduler
             app.UseStaticFiles();
 
             app.UseIdentity().UseCookieAuthentication();
-
+            //app.UseMiddleware<FillResponseBodyMiddleware>();
             app.UseWebSockets();
             app.UseWebSocketHandler();
 

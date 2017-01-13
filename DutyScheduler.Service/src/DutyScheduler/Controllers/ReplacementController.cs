@@ -115,18 +115,19 @@ namespace DutyScheduler.Controllers
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User))
+                return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check that request which we are accepting exist
             _context.ReplacementRequest.Include(r => r.User).Include(r => r.Shift).Load();
             var request = _context.ReplacementRequest.FirstOrDefault(r => r.Id == requestId);
 
             if (request == default(ReplacementRequest))
-                return 404.ErrorStatusCode(new Dictionary<string, string>() { {"request","Request not found."} });
+                return 404.ErrorStatusCode(Constants.ReplacementRequestNotFound.ToDict());
 
             // check that shift that the request refers to belongs to current user
             if (request.Shift.UserId != user.Id)
-                return 403.ErrorStatusCode(new Dictionary<string, string>() { { "request", "Current user is not allowed to accept the specified request." } });
+                return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
             // if replacing date set, check that shift exists
             _context.Shift.Include(s => s.User).Load();
@@ -135,7 +136,7 @@ namespace DutyScheduler.Controllers
             {
                 otherShift = _context.Shift.FirstOrDefault(s => s.UserId == request.UserId && s.Date.Date == request.Date.Value.Date);
                 if (otherShift == default(Shift))
-                    return 404.ErrorStatusCode(new Dictionary<string, string>() { { "shift", "Unable to accept replacement request - replacing shift not found." } });
+                    return 404.ErrorStatusCode(Constants.ShiftNotFound.ToDict());
             }
 
             // user that is acceptng replacement request will now lose all requests where they have offered this shift as repalcement
@@ -188,23 +189,13 @@ namespace DutyScheduler.Controllers
             _context.Users.AsNoTracking().Load();
             var user = _context.Users.FirstOrDefault(u => u.UserName == userId);
             if (user == default(User))
-            {
-                return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"user", "The specified user does not exist"}
-                    });
-            }
+                return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
             // check that shift exists
             _context.Shift.AsNoTracking().Load();
             var shift = _context.Shift.FirstOrDefault(s => s.Id == shiftid);
             if (shift == default(Shift))
-                return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"shift", "The specified shift does not exist"}
-                    });
+                return 404.ErrorStatusCode(Constants.ShiftNotFound.ToDict());
 
             _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
 
@@ -227,44 +218,51 @@ namespace DutyScheduler.Controllers
             {
                 return entry.ToJson();
             }
-            return 404.ErrorStatusCode();
+            return 404.ErrorStatusCode(Constants.ReplacementRequestNotFound.ToDict());
         }
 
         private ActionResult DeleteReplacementRequest(ReplacementRequest entry)
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User))
+                return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             if (entry != default(ReplacementRequest))
             {
                 _context.Remove(entry);
                 _context.SaveChanges();
-                return 200.SuccessStatusCode();
+                return 200.SuccessStatusCode(Constants.OK.ToDict());
             }
-            return 404.ErrorStatusCode();
+            return 404.ErrorStatusCode(Constants.ReplacementRequestNotFound.ToDict());
         }
 
         private ActionResult RequestReplacement(RequestReplacementViewModel model)
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User))
+                return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             _context.Shift.Include(s=>s.User).Load();
             var shift = _context.Shift.FirstOrDefault(s => s.Id == model.ShiftId);
 
             // check that shift exists and is repleceable
-            if (shift == default(Shift)) return 404.ErrorStatusCode();
+            if (shift == default(Shift)) return 404.ErrorStatusCode(Constants.ShiftNotFound.ToDict());
+
             if (!shift.IsRepleceable)
-                return 400.ErrorStatusCode(new Dictionary<string, string>
+                return 400.ErrorStatusCode(new Dictionary<string, string> 
                 {
-                    {"setReplaceable", "The specified shift is not replaceable."}
+                    {"SetReplaceable", "The specified shift is not replaceable."}
                 });
 
             // check that user in not trying to replace their own shift
             if (user.UserName == shift.UserId)
-                return 400.ErrorStatusCode(new Dictionary<string, string>() {{"shiftId", "User cannot replace their own shift."}});
+                return
+                    400.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"shiftId", "User cannot replace their own shift."}
+                    });
 
             // is date set?
             DateTime? date = null;
@@ -292,7 +290,10 @@ namespace DutyScheduler.Controllers
                     return
                         400.ErrorStatusCode(new Dictionary<string, string>()
                         {
-                        {"date", "Unable to request replacement becaause user has no shift scheduled on specified date."}
+                            {
+                                "date",
+                                "Unable to request replacement becaause user has no shift scheduled on specified date."
+                            }
                         });
             }
 

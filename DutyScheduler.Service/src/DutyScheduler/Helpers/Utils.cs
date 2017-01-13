@@ -44,7 +44,12 @@ namespace DutyScheduler.Helpers
             return allErrors;
         }
 
-        public static JsonResult ErrorStatusCode(this int status, Dictionary<string, string> errors = null)
+        public static Dictionary<string, string> ToDict(this KeyValuePair<string, string> kvp)
+        {
+            return new Dictionary<string, string> {{kvp.Key, kvp.Value}};
+        }
+
+        public static JsonResult ErrorStatusCode(this int status, Dictionary<string, string> errors /*= null*/)
         {
             var ret = new JsonResult(new
             {
@@ -60,7 +65,20 @@ namespace DutyScheduler.Helpers
             return ret;
         }
 
-        public static JsonResult SuccessStatusCode(this int status, Dictionary<string, string> messages = null)
+        public static JsonResult ErrorStatusCode(this int status, KeyValuePair<string, string> error /*= null*/)
+        {
+            var ret = new JsonResult(new
+            {
+                Success = false
+            });
+
+            ret = new JsonResult(new { error });
+            
+            ret.StatusCode = status;
+            return ret;
+        }
+
+        public static JsonResult SuccessStatusCode(this int status, Dictionary<string, string> messages /*= null*/)
         {
             var ret = new JsonResult(new
             {
@@ -83,6 +101,17 @@ namespace DutyScheduler.Helpers
             var user = await userManager.FindByNameAsync(name);
             if (user == null) return null;
             return user;
+        }
+
+
+        public static Stream GenerateStreamFromString(this string s)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(s);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
 
         public static string ReadConfig(this string param1, string param2)

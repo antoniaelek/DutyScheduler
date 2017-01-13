@@ -55,10 +55,10 @@ namespace DutyScheduler.Controllers
         [HttpGet("year={year}&month={month}")]
         public ActionResult Get(int year, int month)
         {
-            if (month < 1 || month > 12)
+            if (month < 1 || month > 12 || year < 0)
             {
                 var dict = new Dictionary<string, string>();
-                dict.Add("month", "month must be a value between 1 and 12");
+                if (month < 1 || month > 12) dict.Add("month", "month must be a value between 1 and 12");
                 if (year < 0) dict.Add("year", "year must be a value greater than 0");
                 return 404.ErrorStatusCode(dict);
             }

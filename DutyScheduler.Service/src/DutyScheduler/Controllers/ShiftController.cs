@@ -14,7 +14,7 @@ using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     public class ShiftController : Controller
     {
@@ -42,7 +42,7 @@ namespace DutyScheduler.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] ShiftViewModel model)
         {
-            if (model == default(ShiftViewModel)) return NoContent();
+            if (model == default(ShiftViewModel)) return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
             return CreateShift(model);
         }
 
@@ -60,7 +60,7 @@ namespace DutyScheduler.Controllers
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody]SetReplacementViewModel model)
         {
-            if (model == default(SetReplacementViewModel)) return NoContent();
+            if (model == default(SetReplacementViewModel)) return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
             return SetReplaceable(_context.Shift.FirstOrDefault(s => s.Id == id), model.SetReplaceable);
         }
 
@@ -140,22 +140,27 @@ namespace DutyScheduler.Controllers
                         {"date", "Unable to create shift on a holiday."}
                     });
 
+            // check if date is non working
+            if (month.NonWorkingDays.Select(d => d.Date).Contains(date))
+                return
+                    400.ErrorStatusCode(new Dictionary<string, string>()
+                    {
+                        {"date", "Unable to create shift on a non working day."}
+                    });
+
+
             // check that user is logged in
             var currUser = GetCurrentUser();
-            if (currUser == default(User)) return 401.ErrorStatusCode();
+            if (currUser == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check that the current user is admin
-            if (!currUser.IsAdmin) return 403.ErrorStatusCode();
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
             // check that user in model exists
             _context.Users.Load();
             var user = _context.Users.FirstOrDefault(u => u.Id == model.UserName);
             if (user == default(User))
-                return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"user", "User with the specified Id not found"}
-                    });
+                return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
             // check that the shift does not exist
             _context.Shift.Include(s => s.User).Load();
@@ -184,12 +189,15 @@ namespace DutyScheduler.Controllers
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User))
+                return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check that shift exists and the current user can modify it
             _context.Shift.Include(s => s.User).Load();
-            if (shift == default(Shift)) return 404.ErrorStatusCode();
-            if (user.Id != shift.UserId && !user.IsAdmin) return 403.ErrorStatusCode();
+            if (shift == default(Shift))
+                return 404.ErrorStatusCode(Constants.ShiftNotFound.ToDict());
+            if (user.Id != shift.UserId && !user.IsAdmin)
+                return 403.ErrorStatusCode(Constants.Forbidden);
 
             _context.ReplacementRequest.Include(r=>r.User).Load();
             var requests = _context.ReplacementRequest.Where(r => r.ShiftId == shift.Id).ToList();
@@ -201,7 +209,7 @@ namespace DutyScheduler.Controllers
         {
             _context.Users.AsNoTracking().Load();
             if (_context.Users.FirstOrDefault(u => u.UserName == username) == default(User))
-                return 404.ErrorStatusCode(new Dictionary<string, string>() {{"user", "Invalid username"}});
+                return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
             _context.Shift.Include(s => s.User).AsNoTracking().Load();
             IEnumerable<Shift> ret = _context.Shift.Where(s => s.UserId == username && 
@@ -216,12 +224,12 @@ namespace DutyScheduler.Controllers
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check that shift exists and the current user can modify it
             _context.Shift.Include(s => s.User).Load();
-            if (entry == default(Shift)) return 404.ErrorStatusCode();
-            if (user.Id != entry.UserId && !user.IsAdmin) return 403.ErrorStatusCode();
+            if (entry == default(Shift)) return 404.ErrorStatusCode(Constants.ShiftNotFound.ToDict());
+            if (user.Id != entry.UserId && !user.IsAdmin) 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
             // check if date in past
             if (entry.Date < DateTime.Today)

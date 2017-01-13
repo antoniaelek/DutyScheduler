@@ -49,7 +49,7 @@ namespace DutyScheduler.Controllers
         public async Task<JsonResult> Get(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
-            if (user == null) return 404.ErrorStatusCode();
+            if (user == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
             return user.ToJson();
         }
 
@@ -133,14 +133,14 @@ namespace DutyScheduler.Controllers
         public async Task<JsonResult> Update(string username, [FromBody]UpdateUserViewModel viewModel)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
-            if (user == null) return 404.ErrorStatusCode();
+            if (user == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
             var isAuthorized = await CheckUserCredentials(user.UserName);
             if (isAuthorized.StatusCode != 200 && isAuthorized.StatusCode.HasValue)
-                return isAuthorized.StatusCode.Value.ErrorStatusCode();
+                return isAuthorized;
 
             if (isAuthorized.StatusCode != 200)
-                return 400.ErrorStatusCode();
+                return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
 
             if (viewModel.Name != null) user.Name = viewModel.Name;
             if (viewModel.LastName != null) user.LastName = viewModel.LastName;
@@ -167,7 +167,7 @@ namespace DutyScheduler.Controllers
         [Authorize]
         public JsonResult AdminRights(string username, [FromBody]AdminRightsViewModel viewModel)
         {
-            if (viewModel == default(AdminRightsViewModel)) return 204.ErrorStatusCode();
+            if (viewModel == default(AdminRightsViewModel)) return 204.ErrorStatusCode(Constants.NoContent.ToDict());
             return UpdateAdminRights(username, viewModel.SetAdmin);
         }
 
@@ -185,37 +185,33 @@ namespace DutyScheduler.Controllers
         public async Task<JsonResult> Delete(string username)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
-            if (user == null) return 401.ErrorStatusCode();
+            if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
-            if (!user.IsAdmin) return 403.ErrorStatusCode();
+            if (!user.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
             var userToDelete = await _context.Users.FirstOrDefaultAsync(x => x.UserName == username);
-            if (userToDelete == null) return 404.ErrorStatusCode();
+            if (userToDelete == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
             await _userManager.DeleteAsync(userToDelete);
-            return 200.SuccessStatusCode();
+            return 200.SuccessStatusCode(Constants.OK.ToDict());
         }
 
         private JsonResult UpdateAdminRights(string username, bool? setAdmin)
         {
             // check that user is logged in
             var currUser = GetCurrentUser();
-            if (currUser == default(User)) return 401.ErrorStatusCode();
+            if (currUser == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check that the current user is admin
-            if (!currUser.IsAdmin) return 403.ErrorStatusCode();
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
             // check that user in model exists
             _context.Users.Load();
             var user = _context.Users.FirstOrDefault(u => u.Id == username);
             if (user == default(User))
-                return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"user", "User with the specified username not found"}
-                    });
+                return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
 
-            if (setAdmin == null) return 304.SuccessStatusCode();
+            if (setAdmin == null) return 304.SuccessStatusCode(Constants.NotModified.ToDict());
 
             // update
             user.IsAdmin = setAdmin.Value;
@@ -227,11 +223,11 @@ namespace DutyScheduler.Controllers
         {
             // User null, how did we even get past the Authorize attribute?
             var user = await _userManager.GetUser(User.Identity.Name);
-            if (user == null) return 401.ErrorStatusCode();
+            if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // This user does not have enough rights
-            if (user.UserName != id) return 403.ErrorStatusCode();
-            return 200.SuccessStatusCode();
+            if (user.UserName != id) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
+            return 200.SuccessStatusCode(Constants.OK.ToDict());
         }
 
         private User GetCurrentUser()
