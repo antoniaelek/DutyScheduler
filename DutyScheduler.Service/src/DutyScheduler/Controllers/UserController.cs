@@ -184,7 +184,7 @@ namespace DutyScheduler.Controllers
         [Authorize]
         public async Task<JsonResult> Delete(string username)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
+            var user = GetCurrentUser();
             if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             if (!user.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
