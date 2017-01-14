@@ -53,7 +53,7 @@
 
 		var shorterDayClassName = "";
 		if (day.type === "special")
-			shorterDayClassName = " shortDayIcon";
+			shorterDayClassName = "shortDayIcon";
 
 		if (day.scheduled !== null) {
 			var icon = null;
@@ -65,7 +65,7 @@
 				icon = <Icon icon="user-circle-o" />;
 			}
 
-			return <div className={"dayNumber" + shorterDayClassName}>{dayNumber}<div>{icon}{replacementIcon}</div></div>;
+			return <div className="dayNumber"><span className={shorterDayClassName}>{dayNumber}</span><div>{icon}{replacementIcon}</div></div>;
 		}
 
 		if (day.date.isAfter(moment())) {
@@ -77,7 +77,7 @@
 				icon = <Icon className="notprefered" icon="thumbs-down" />;
 			}
 
-		return <div className={"dayNumber" + shorterDayClassName}>{dayNumber}<div>{icon}</div></div>;
+			return <div className="dayNumber"><span className={shorterDayClassName}>{dayNumber}</span><div>{icon}</div></div>;
 		}
 
 		//var icon = Math.random() < 0.2 ? <Icon icon="user-circle-o" /> : null;

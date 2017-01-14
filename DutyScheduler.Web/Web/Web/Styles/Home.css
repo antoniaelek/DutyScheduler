@@ -243,7 +243,7 @@ header .loginCorner .logout {
   padding-bottom: 8px;
   height: 100%;
 }
-.calendarView .calendarContainer .daysGrid .dayNumber.shortDayIcon {
+.calendarView .calendarContainer .daysGrid .dayNumber span.shortDayIcon {
   color: #169320;
 }
 .calendarView .calendarContainer .daysGrid .dayNumber i.notprefered {
