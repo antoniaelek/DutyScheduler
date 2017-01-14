@@ -29,6 +29,10 @@ namespace DutyScheduler.Controllers
             _userManager = userManager;
         }
 
+
+        /// <summary>
+        /// Get statistics for logged in user and and current year.
+        /// </summary>
         [SwaggerResponse(HttpStatusCode.OK, "Success.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [Authorize]
@@ -36,13 +40,77 @@ namespace DutyScheduler.Controllers
         public ActionResult Get()
         {
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             return GetUserStatistics(DateTime.Now.Year, user.UserName);
         }
 
+        /// <summary>
+        /// Get statistics for <paramref name="username]"/> and current year.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Success.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [Authorize]
+        [HttpGet("{username}")]
+        public ActionResult Get(string username)
+        {
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
+
+            if (!user.IsAdmin && user.UserName != username) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
+
+            return GetUserStatistics(DateTime.Now.Year, user.UserName);
+        }
+
+        /// <summary>
+        /// Get statistics for logged in user and <paramref name="year"/>.
+        /// </summary>
+        /// <param name="year">Year</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Success.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Invalid  year.")]
+        [Authorize]
+        [HttpGet("year={year}")]
+        public ActionResult Get(int year)
+        {
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
+
+            return GetUserStatistics(year, user.UserName);
+        }
+
+        /// <summary>
+        /// Get statistics for <paramref name="username]"/> and <paramref name="year"/>.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <param name="year">Year</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Success.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Invalid  year.")]
+        [Authorize]
+        [HttpGet("username={username}&year={year}")]
+        public ActionResult Get(string username, int year)
+        {
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
+
+            if (!user.IsAdmin && user.UserName != username) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
+
+            return GetUserStatistics(DateTime.Now.Year, user.UserName);
+        }
+
+
         private ActionResult GetUserStatistics(int year, string username)
         {
+            if (year < 1 || year > DateTime.Now.Year)
+                return 400.ErrorStatusCode(new Dictionary<string, string>() { { "year", "Invalid year specified." } });
+
             _context.Shift.Include(s => s.User).AsNoTracking().Load();
             _context.ReplacementHistory.Include(h => h.ReplacedUser).Include(h => h.ReplacingUser).Load();
 

@@ -97,13 +97,13 @@ namespace DutyScheduler.Controllers
                 if (viewModel.Email != null) 
                 {
                     user = await _userManager.FindByEmailAsync(viewModel.Email);
-                    if (user == null) return 404.ErrorStatusCode();
+                    if (user == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
                 }
                 else if (viewModel.UserName != null || 
                          (user == null && viewModel.UserName != null)) 
                     user = await _userManager.FindByNameAsync(viewModel.UserName);
 
-                if (user == null) return 401.ErrorStatusCode(new Dictionary<string, string>() { { "login", "Invalid credentials combination." } });
+                if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
                 var result = await _signInManager.
                     PasswordSignInAsync(user?.UserName,

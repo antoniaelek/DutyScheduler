@@ -35,13 +35,12 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.OK, "Preference saved successfully.")]
         [SwaggerResponse(HttpStatusCode.NotModified, "Model was empty, nothing happened.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set preference to a past date, or invalid date, or the datw which already has preference set.")]
         [Authorize]
         [HttpPost]
         public ActionResult Post([FromBody]CreatePreferenceViewModel model)
         {
-            if (model == default(CreatePreferenceViewModel)) return NoContent();
+            if (model == default(CreatePreferenceViewModel)) return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
 
             if (!model.Date.ValidateDate())
                 return 400.ErrorStatusCode(
@@ -64,7 +63,7 @@ namespace DutyScheduler.Controllers
         [HttpPut]
         public ActionResult Put([FromBody]CreateOrUpdatePreferenceViewModel model)
         {
-            if (model == default(CreateOrUpdatePreferenceViewModel)) return NoContent();
+            if (model == default(CreateOrUpdatePreferenceViewModel)) return 204.SuccessStatusCode(Constants.NoContent.ToDict());
 
             _context.Preference.Include(p => p.User).Load();
 
@@ -110,7 +109,7 @@ namespace DutyScheduler.Controllers
         [HttpPut("{id}")]
         public ActionResult Put(int id, [FromBody]UpdatePreferenceViewModel model)
         {
-            if (model == default(UpdatePreferenceViewModel)) return NoContent();
+            if (model == default(UpdatePreferenceViewModel)) return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
             _context.Preference.Include(p => p.User).Load();
             return UpdatePrefered(_context.Preference.FirstOrDefault(p => p.Id == id), model.SetPrefered);
         }
@@ -135,7 +134,7 @@ namespace DutyScheduler.Controllers
         {
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check if date in past
             if (date < DateTime.Today)
@@ -175,14 +174,11 @@ namespace DutyScheduler.Controllers
             
             if (entry == default(Preference))
                 return
-                    404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"id", "Preference with the given id does not exists"}
-                    });            
+                    404.ErrorStatusCode(Constants.UserNotFound.ToDict());            
             
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             // check if date in past
             if (entry.Date < DateTime.Today)
@@ -203,18 +199,15 @@ namespace DutyScheduler.Controllers
 
             // check that user is logged in
             var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
 
             if (preference != default(Preference))
             {
                 _context.Remove(preference);
                 _context.SaveChanges();
-                return 200.SuccessStatusCode();
+                return 200.SuccessStatusCode(Constants.OK.ToDict());
             }
-            return 404.ErrorStatusCode(new Dictionary<string, string>()
-                    {
-                        {"id", "Preference with the given id does not exists"}
-                    });
+            return 404.ErrorStatusCode(Constants.PreferenceNotFound.ToDict());
         }
 
         private User GetCurrentUser()
