@@ -120,27 +120,18 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Update user with the specified <paramref name="username"/>.
+        /// Update user details.
         /// </summary>
-        /// <param name="username">Unique identifier of the user.</param>
         /// <param name="viewModel">New user data.</param>
         /// <returns>JSON user data.</returns>
         [SwaggerResponse(HttpStatusCode.OK, "User details successfully saved.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
-        [HttpPut("{username}")]
+        [HttpPut]
         [Authorize]
-        public async Task<JsonResult> Update(string username, [FromBody]UpdateUserViewModel viewModel)
+        public async Task<JsonResult> Update([FromBody]UpdateUserViewModel viewModel)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.NormalizedUserName == username.ToUpper());
-            if (user == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
-
-            var isAuthorized = await CheckUserCredentials(user.UserName);
-            if (isAuthorized.StatusCode != 200 && isAuthorized.StatusCode.HasValue)
-                return isAuthorized;
-
-            if (isAuthorized.StatusCode != 200)
-                return 400.ErrorStatusCode(Constants.BadRequest.ToDict());
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
 
             if (viewModel.Name != null) user.Name = viewModel.Name;
             if (viewModel.LastName != null) user.LastName = viewModel.LastName;
