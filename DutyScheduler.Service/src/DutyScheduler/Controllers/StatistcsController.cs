@@ -59,10 +59,10 @@ namespace DutyScheduler.Controllers
         {
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
-
+            
             if (!user.IsAdmin && user.UserName != username) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
-            return GetUserStatistics(DateTime.Now.Year, user.UserName);
+            return GetUserStatistics(DateTime.Now.Year, username);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace DutyScheduler.Controllers
 
             if (!user.IsAdmin && user.UserName != username) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
 
-            return GetUserStatistics(DateTime.Now.Year, user.UserName);
+            return GetUserStatistics(DateTime.Now.Year, username);
         }
 
 
@@ -111,8 +111,13 @@ namespace DutyScheduler.Controllers
             if (year < 1 || year > DateTime.Now.Year)
                 return 400.ErrorStatusCode(new Dictionary<string, string>() { { "year", "Invalid year specified." } });
 
+            _context.Users.Load();
+            var otherUser = _context.Users.FirstOrDefault(u => u.UserName == username);
+            if (otherUser == default(User)) return 404.ErrorStatusCode(Constants.UserNotFound);
+
             _context.Shift.Include(s => s.User).AsNoTracking().Load();
             _context.ReplacementHistory.Include(h => h.ReplacedUser).Include(h => h.ReplacingUser).Load();
+
 
             ICollection<UserStatisticsViewModel> stats = new List<UserStatisticsViewModel>();
 
