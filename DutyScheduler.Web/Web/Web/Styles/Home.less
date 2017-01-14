@@ -443,7 +443,27 @@ div.button {
 
 	&.currentUser {
 		border: 2px solid #ee4b4b;
-		background-color: #e2c5f3;
+	}
+
+	.userContainer {
+		display: flex;
+		align-items: center;
+	}
+
+	.userElement {
+		display: inline-block;
+		flex-grow: 1;
+	}
+
+	.userIcons {
+		display: inline-block;
+		flex-grow: 0;
+
+		.userIcon {
+			padding: 2px;
+			margin: 2px;
+			font-size: 16px;
+		}
 	}
 }
 
@@ -468,7 +488,7 @@ div.button {
 		border-bottom-right-radius: 0;
 	}
 
-	.button{
+	.button {
 		border-top-left-radius: 0;
 		border-bottom-left-radius: 0;
 	}

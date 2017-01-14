@@ -370,7 +370,23 @@ div.button {
 }
 .userInfo.currentUser {
   border: 2px solid #ee4b4b;
-  background-color: #e2c5f3;
+}
+.userInfo .userContainer {
+  display: flex;
+  align-items: center;
+}
+.userInfo .userElement {
+  display: inline-block;
+  flex-grow: 1;
+}
+.userInfo .userIcons {
+  display: inline-block;
+  flex-grow: 0;
+}
+.userInfo .userIcons .userIcon {
+  padding: 2px;
+  margin: 2px;
+  font-size: 16px;
 }
 .dayPreferences * {
   user-select: none;
