@@ -46,7 +46,7 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Get statistics for <paramref name="username]"/> and current year.
+        /// Get statistics for <paramref name="username"/> and current year.
         /// </summary>
         /// <param name="username">Username</param>
         /// <returns></returns>
@@ -84,7 +84,7 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
-        /// Get statistics for <paramref name="username]"/> and <paramref name="year"/>.
+        /// Get statistics for <paramref name="username"/> and <paramref name="year"/>.
         /// </summary>
         /// <param name="username">Username</param>
         /// <param name="year">Year</param>
