@@ -56,10 +56,10 @@ namespace DutyScheduler.Controllers
 			// check date
 			var date = year + "-" + month + "-1";
 			if (!date.ValidateDate()) return 400.ErrorStatusCode(Constants.InvalidDate);
-			if (!Algorithm(new DateTime(year, month, 1))) return 400.ErrorStatusCode(Constants.InvalidDate);
 
-			// run
-			var m = new Month(new DateTime(year, month, 1));
+            // run
+            if (!Algorithm(new DateTime(year, month, 1))) return 400.ErrorStatusCode(Constants.InvalidDate);
+		    var m = new Month(new DateTime(year, month, 1));
 			return _context.DaysToJson(m.GetMonth(), currUser);
 		}
 
@@ -156,7 +156,7 @@ namespace DutyScheduler.Controllers
 						}
 
 					}
-					currentDate.AddDays(1);
+					currentDate = currentDate.AddDays(1);
 				}
 				return true;
 			}
