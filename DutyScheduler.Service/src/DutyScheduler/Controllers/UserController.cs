@@ -136,7 +136,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.OK, "Password successfully changed.")]
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
-        [HttpPost("password")]
+        [HttpPut("password")]
         [Authorize]
         public ActionResult ChangePassword([FromBody] PasswordViewModel model)
         {
