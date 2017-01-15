@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using System.Linq;
+using DutyScheduler.ViewModels;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using ModelBuilder = Microsoft.EntityFrameworkCore.ModelBuilder;
@@ -10,6 +13,25 @@ namespace DutyScheduler.Models
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+        }
+
+        public async void EnsureSeedData(UserManager<User> userMgr, RegisterViewModel defaultAdmin, string password)
+        {
+            if (!Users.Any(u => u.IsAdmin))
+            {
+                // create admin user
+                var adminUser = new User
+                {
+                    UserName = defaultAdmin.UserName,
+                    Email = defaultAdmin.Email,
+                    IsAdmin = true,
+                    Name = defaultAdmin.Name,
+                    LastName = defaultAdmin.LastName,
+                    Office = defaultAdmin.Office,
+                    Phone = defaultAdmin.Phone
+                };
+                await userMgr.CreateAsync(adminUser, password);
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
