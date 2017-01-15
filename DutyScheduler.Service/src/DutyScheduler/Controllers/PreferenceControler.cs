@@ -142,6 +142,17 @@ namespace DutyScheduler.Controllers
                     new Dictionary<string, string>() { { "date", "Unable to set preferences for past dates." } }
                 );
 
+            // check that date is not weekend or holiday
+            var m = new Month(new DateTime(date.Year, date.Month, 1));
+            if (m.Holidays.Select(d=>d.Date).Contains(date))
+                return 400.ErrorStatusCode(
+                    new Dictionary<string, string>() { { "date", "Unable to set preferences for holidays." } }
+                );
+            if (m.NonWorkingDays.Select(d => d.Date).Contains(date))
+                return 400.ErrorStatusCode(
+                    new Dictionary<string, string>() { { "date", "Unable to set preferences for non working days." } }
+                );
+
             // check if preference already exists
             _context.Preference.Include(p => p.User).Load();
             var entry = _context.Preference.FirstOrDefault(p => p.Date == date && p.UserId == user.Id);

@@ -39,8 +39,8 @@ namespace DutyScheduler.Controllers
         [HttpGet]
         public ActionResult Get()
         {
-            var days = GetMonth(new Month());
-            return DaysToJson(days);
+            var days = new Month().GetMonth();
+            return _context.DaysToJson(days);
         }
 
         /// <summary>
@@ -62,8 +62,9 @@ namespace DutyScheduler.Controllers
                 if (year < 0) dict.Add("year", "year must be a value greater than 0");
                 return 404.ErrorStatusCode(dict);
             }
-            var days = GetMonth(new Month(new DateTime(year, month, 1)));
-            return DaysToJson(days);
+
+            var m = new Month(new DateTime(year, month, 1));
+            return _context.DaysToJson(m.GetMonth(), GetCurrentUser());
         }
 
         private User GetCurrentUser()
@@ -75,76 +76,5 @@ namespace DutyScheduler.Controllers
             if (userObj == default(User)) return null;
             return userObj;
         }
-
-        private ActionResult DaysToJson(IEnumerable<Day> days)
-        {
-            _context.Shift.Include(s => s.User).Load();
-            _context.Preference.Include(s => s.User).Load();
-            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
-
-            var user = GetCurrentUser();
-            ICollection<DayViewModel> dayVMs = new List<DayViewModel>();
-            foreach (var d in days)
-            {
-                bool? isPrefered = null;
-                var shiftId = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.Id;
-                Shift shift = null;
-                ICollection<ReplacementRequest> replacementRequests = null;
-
-                if (shiftId != null)
-                    shift = _context.Shift.FirstOrDefault(s => s.Id == shiftId);
-
-                if (user != default(User))
-                {
-                    isPrefered = _context.Preference.FirstOrDefault(p => p.Date.Date == d.Date.Date && p.UserId == user.Id)?.IsPreferred;
-                    replacementRequests = new List<ReplacementRequest>();
-                }
-
-                if (shiftId != null && user != default(User))
-                {
-                    // if this is current user's shift return all
-                    if (shift.UserId == user.Id)
-                        replacementRequests = _context.ReplacementRequest.Where(r => r.ShiftId == shiftId).ToList();
-
-                    // else return current users' requests for shift
-                    else
-                        replacementRequests = _context.ReplacementRequest.Where(r => r.ShiftId == shiftId && r.UserId == user.Id).ToList();
-                }
-
-                dayVMs.Add(new DayViewModel()
-                {
-                    Date = d.Date.ToString(DateFormat),
-                    Weekday = d.WeekDay,
-                    Type = d.Type,
-                    Name = d.Name,
-                    IsReplaceable = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.IsRepleceable,
-                    IsPrefered = isPrefered,
-                    ShiftId = shiftId,
-                    Scheduled = shift?.User.SerializeUser(),
-                    ReplacementRequests = replacementRequests.SerializeReplacementRequests(true)
-                });
-            }
-            return new JsonResult(dayVMs);
-        }
-
-        private static IEnumerable<Day> GetMonth(Month month)
-        {
-            var list = new List<Day>(month.Last.Day);
-            for (var i = 1; i <= month.Last.Day; i++)
-            {
-                var date = new DateTime(month.First.Year, month.First.Month, i);
-
-                var holiday = month.Holidays.FirstOrDefault(h => h.Date == date);
-                var specialDay = month.SpecialDays.FirstOrDefault(s => s.Date == date);
-                var nonWorkingDay = month.NonWorkingDays.FirstOrDefault(s => s.Date == date);
-
-                if (holiday != default(Holiday)) list.Add(holiday);
-                else if (specialDay != default(SpecialDay)) list.Add(specialDay);
-                else if (nonWorkingDay != default(NonWorkingDay)) list.Add(nonWorkingDay);
-                else list.Add(new OrdinaryDay(date));
-            }
-            return list;
-        }
-
     }
 }
