@@ -21,5 +21,6 @@ namespace DutyScheduler.Helpers
         public static KeyValuePair<string,string> NotModified => new KeyValuePair<string, string>("Status", "Not modified.");
 
         public static KeyValuePair<string,string> PasswordChangeSuccess => new KeyValuePair<string, string>("Success", "Password changed successfully.");
+        public static KeyValuePair<string,string> EmailExists => new KeyValuePair<string, string>("Email", "There already exists an account registered with the specified email.");
     }
 }

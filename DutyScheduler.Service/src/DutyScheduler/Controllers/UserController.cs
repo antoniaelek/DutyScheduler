@@ -128,31 +128,32 @@ namespace DutyScheduler.Controllers
             return ret;
         }
 
-        /// <summary>
-        /// Change password.
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [SwaggerResponse(HttpStatusCode.OK, "Password successfully changed.")]
-        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
-        [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
-        [HttpPut("password")]
-        [Authorize]
-        public ActionResult ChangePassword([FromBody] PasswordViewModel model)
-        {
-            var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
-            if (ModelState.IsValid)
-            {
-                var h = new PasswordHasher<User>();
-                user.PasswordHash = h.HashPassword(user, model.Password);
-                _context.Users.Update(user);
-                _context.SaveChanges();
+        ///// <summary>
+        ///// Change password.
+        ///// </summary>
+        ///// <param name="model"></param>
+        ///// <returns></returns>
+        //[SwaggerResponse(HttpStatusCode.OK, "Password successfully changed.")]
+        //[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        //[SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
+        //[HttpPut("password")]
+        //[Authorize]
+        //public ActionResult ChangePassword([FromBody] PasswordViewModel model)
+        //{
+        //    var user = GetCurrentUser();
+        //    if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
 
-                return 200.SuccessStatusCode(Constants.PasswordChangeSuccess.ToDict());
-            }
-            return 400.ErrorStatusCode(ModelState.ValidationErrors());
-        }
+        //    if (ModelState.IsValid)
+        //    {
+        //        var h = new PasswordHasher<User>();
+        //        user.PasswordHash = h.HashPassword(user, model.Password);
+        //        _context.Users.Update(user);
+        //        _context.SaveChanges();
+
+        //        return 200.SuccessStatusCode(Constants.PasswordChangeSuccess.ToDict());
+        //    }
+        //    return 400.ErrorStatusCode(ModelState.ValidationErrors());
+        //}
 
         /// <summary>
         /// Update user details.
@@ -165,18 +166,49 @@ namespace DutyScheduler.Controllers
         [Authorize]
         public JsonResult Update([FromBody]UpdateUserViewModel viewModel)
         {
-            var user = GetCurrentUser();
-            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
+            _context.Users.Load();
 
-            if (viewModel.Name != null) user.Name = viewModel.Name;
-            if (viewModel.LastName != null) user.LastName = viewModel.LastName;
-            if (viewModel.Office != null) user.Office = viewModel.Office;
-            if (viewModel.Phone != null) user.Phone = viewModel.Phone;
+            var curr = GetCurrentUser();
+            if (curr == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
 
-            _context.Users.Update(user);
-            _context.SaveChanges();
+            if (viewModel.Email != null && viewModel.Email != curr.Email)
+            {
+                var emails = _context.Users.Select(u => u.NormalizedEmail);
+                if (emails.Contains(viewModel.Email.ToUpper()))
+                    ModelState.AddModelError(Constants.EmailExists.Key, Constants.EmailExists.Value);
+            }
 
-            return user.ToJson();
+            if (ModelState.IsValid)
+            {
+                var user = GetCurrentUser();
+                if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
+
+                // Email
+                if (viewModel.Email != null)
+                {
+                    user.Email = viewModel.Email;
+                    user.NormalizedEmail = viewModel.Email.ToUpper();
+                }
+
+                // Password
+                if (viewModel.Password != null)
+                {
+                    var h = new PasswordHasher<User>();
+                    user.PasswordHash = h.HashPassword(user, viewModel.Password);
+                }
+                
+                // The rest
+                if (viewModel.Name != null) user.Name = viewModel.Name;
+                if (viewModel.LastName != null) user.LastName = viewModel.LastName;
+                if (viewModel.Office != null) user.Office = viewModel.Office;
+                if (viewModel.Phone != null) user.Phone = viewModel.Phone;
+
+                _context.Users.Update(user);
+                _context.SaveChanges();
+
+                return user.ToJson();
+            }
+            return 400.ErrorStatusCode(ModelState.ValidationErrors());
         }
 
         /// <summary>
