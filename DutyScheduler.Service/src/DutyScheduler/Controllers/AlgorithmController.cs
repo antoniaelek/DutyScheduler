@@ -36,7 +36,7 @@ namespace DutyScheduler.Controllers
 		/// <param name="year">Year  for which to generate the schedule</param>
 		/// <param name="month">Month for which to generate the schedule</param>
 		/// <returns></returns>
-		[SwaggerResponse(HttpStatusCode.Created, "Algorithm generated successfully.")]
+		[SwaggerResponse(HttpStatusCode.OK, "Algorithm generated successfully.")]
 		[SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
 		[SwaggerResponse(HttpStatusCode.Forbidden, "User is not an admin.")]
 		[SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set shift for a past, or invalid date, or non existing user.")]
