@@ -125,7 +125,7 @@ namespace DutyScheduler.Controllers
         public ActionResult GetShifts(string username, int month, int year)
         {
             var date = year + "-" + month + "-1";
-            if (!date.ValidateDate()) return 400.ErrorStatusCode(new Dictionary<string, string>() { { "date", "Invalid date" } });
+            if (!date.ValidateDate()) return 400.ErrorStatusCode(Constants.InvalidDate);
 
             return GetUserShiftsInMonth(username, new DateTime(year, month, 1));
         }

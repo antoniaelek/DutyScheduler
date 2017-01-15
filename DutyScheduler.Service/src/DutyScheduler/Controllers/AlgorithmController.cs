@@ -30,6 +30,39 @@ namespace DutyScheduler.Controllers
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Run scheduler algorithm.
+        /// </summary>
+        /// <param name="year">Year  for which to generate the schedule</param>
+        /// <param name="month">Month for which to generate the schedule</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.Created, "Algorithm generated successfully.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User is not an admin.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Trying to set shift for a past, or invalid date, or non existing user.")]
+        [Authorize]
+        [HttpGet("year={year}&month={month}")]
+        public ActionResult Run(int year, int month)
+        {
+            _context.Users.Load();
+
+            // check that user is logged in
+            var currUser = GetCurrentUser();
+            if (currUser == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
+
+            // check that the current user is admin
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
+
+            // check date
+            var date = year + "-" + month + "-1";
+            if (!date.ValidateDate()) return 400.ErrorStatusCode(Constants.InvalidDate);
+            if (!Algorithm(new DateTime(year, month, 1))) return 400.ErrorStatusCode(Constants.InvalidDate);
+
+            // run
+            var m = new Month(new DateTime(year, month, 1));
+            return _context.DaysToJson(m.GetMonth(), currUser);
+        }
+
         private bool Algorithm(DateTime date)
         {
             // check if date is invalid
@@ -183,7 +216,7 @@ namespace DutyScheduler.Controllers
             DateTime currentDate = month.First;
             while (currentDate <= month.Last)
             {
-                num = _context.Preference.Where(p => p.Date == currentDate && p.IsPreferred == true).Count();
+                num = _context.Preference.Count(p => p.Date == currentDate && p.IsPreferred != default(bool?) && p.IsPreferred == true);
                 if (num > 0) preferences.Add(currentDate, num);
                 currentDate.AddDays(1);
             }
@@ -247,6 +280,16 @@ namespace DutyScheduler.Controllers
                 }
             }
             return user;
+        }
+
+        private User GetCurrentUser()
+        {
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return null;
+            var userObj = _context.Users.FirstOrDefault(u => u.Id == user);
+            if (userObj == default(User)) return null;
+            return userObj;
         }
     }
 }

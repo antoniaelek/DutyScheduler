@@ -9,11 +9,32 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace DutyScheduler.Helpers
 {
     public static class Utils
     {
+
+        public static IEnumerable<Day> GetMonth(this Month month)
+        {
+            var list = new List<Day>(month.Last.Day);
+            for (var i = 1; i <= month.Last.Day; i++)
+            {
+                var date = new DateTime(month.First.Year, month.First.Month, i);
+
+                var holiday = month.Holidays.FirstOrDefault(h => h.Date == date);
+                var specialDay = month.SpecialDays.FirstOrDefault(s => s.Date == date);
+                var nonWorkingDay = month.NonWorkingDays.FirstOrDefault(s => s.Date == date);
+
+                if (holiday != default(Holiday)) list.Add(holiday);
+                else if (specialDay != default(SpecialDay)) list.Add(specialDay);
+                else if (nonWorkingDay != default(NonWorkingDay)) list.Add(nonWorkingDay);
+                else list.Add(new OrdinaryDay(date));
+            }
+            return list;
+        }
+
         public static string GetUserId(this ClaimsPrincipal principal)
         {
             return principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;

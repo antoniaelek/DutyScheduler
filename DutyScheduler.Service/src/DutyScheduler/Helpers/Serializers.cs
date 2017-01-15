@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using DutyScheduler.Models;
+using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DutyScheduler.Helpers
 {
@@ -224,6 +226,57 @@ namespace DutyScheduler.Helpers
 			return json;
 		}
 
-		#endregion
-	}
+        #endregion
+
+        public static ActionResult DaysToJson(this ApplicationDbContext _context, IEnumerable<Day> days, User user = null)
+        {
+            _context.Shift.Include(s => s.User).Load();
+            _context.Preference.Include(s => s.User).Load();
+            _context.ReplacementRequest.Include(r => r.Shift).Include(r => r.User).Load();
+
+            //var user = GetCurrentUser();
+            ICollection<DayViewModel> dayVMs = new List<DayViewModel>();
+            foreach (var d in days)
+            {
+                bool? isPrefered = null;
+                var shiftId = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.Id;
+                Shift shift = null;
+                ICollection<ReplacementRequest> replacementRequests = null;
+
+                if (shiftId != null)
+                    shift = _context.Shift.FirstOrDefault(s => s.Id == shiftId);
+
+                if (user != default(User))
+                {
+                    isPrefered = _context.Preference.FirstOrDefault(p => p.Date.Date == d.Date.Date && p.UserId == user.Id)?.IsPreferred;
+                    replacementRequests = new List<ReplacementRequest>();
+                }
+
+                if (shiftId != null && user != default(User))
+                {
+                    // if this is current user's shift return all
+                    if (shift.UserId == user.Id)
+                        replacementRequests = _context.ReplacementRequest.Where(r => r.ShiftId == shiftId).ToList();
+
+                    // else return current users' requests for shift
+                    else
+                        replacementRequests = _context.ReplacementRequest.Where(r => r.ShiftId == shiftId && r.UserId == user.Id).ToList();
+                }
+
+                dayVMs.Add(new DayViewModel()
+                {
+                    Date = d.Date.ToString(DateFormat),
+                    Weekday = d.WeekDay,
+                    Type = d.Type,
+                    Name = d.Name,
+                    IsReplaceable = _context.Shift.FirstOrDefault(s => s.Date.Date == d.Date.Date)?.IsRepleceable,
+                    IsPrefered = isPrefered,
+                    ShiftId = shiftId,
+                    Scheduled = shift?.User.SerializeUser(),
+                    ReplacementRequests = replacementRequests.SerializeReplacementRequests(true)
+                });
+            }
+            return new JsonResult(dayVMs);
+        }
+    }
 }
