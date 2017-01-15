@@ -45,7 +45,9 @@ header .menuItems .menuItem {
   cursor: pointer;
 }
 header .menuItems .menuItem.selected {
-  background-color: #3f1957;
+  background-color: #7800c3;
+  border-radius: 8px;
+  padding: 7px;
 }
 header .loginCorner {
   display: inline-block;
@@ -174,6 +176,23 @@ header .loginCorner .logout {
 .panelButton:hover {
   background-color: #707070;
 }
+.monthControls {
+  margin-bottom: 20px;
+}
+.monthControls .button {
+  display: inline-block;
+  padding: 8px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  margin: 3px 5px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.monthControls .month {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 20px;
+}
 .calendarView {
   margin-left: 10px;
   display: flex;
@@ -183,24 +202,6 @@ header .loginCorner .logout {
 .calendarView .calendarContainer {
   flex-basis: 360px;
   text-align: center;
-}
-.calendarView .calendarContainer .monthControls {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-.calendarView .calendarContainer .monthControls .button {
-  display: inline-block;
-  padding: 8px;
-  background-color: #eee;
-  border: 1px solid #ddd;
-  margin: 3px 5px;
-  cursor: pointer;
-  border-radius: 2px;
-}
-.calendarView .calendarContainer .monthControls .month {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 20px;
 }
 .calendarView .calendarContainer .daysGrid td {
   width: 50px;
@@ -357,19 +358,18 @@ div.button {
   box-sizing: border-box;
   width: 400px;
   align-items: center;
-  padding: 4px;
+  padding: 6px;
+  padding-left: 10px;
   margin: 10px;
   border-radius: 4px;
-  background-color: #ecd7f8;
+  background-color: #f4e1ff;
   border: 1px solid #707070;
-  border-radius: 2px;
-}
-.userInfo.admin {
-  border: 2px solid #3f46cc;
-  background-color: #e2c5f3;
 }
 .userInfo.currentUser {
-  border: 2px solid #ee4b4b;
+  border: 3px solid #3f46cc;
+}
+.userInfo.admin {
+  background-color: #bbb;
 }
 .userInfo .userContainer {
   display: flex;
@@ -378,6 +378,16 @@ div.button {
 .userInfo .userElement {
   display: inline-block;
   flex-grow: 1;
+  font-family: Roboto;
+  line-height: 1.4em;
+  font-size: 14px;
+  font-weight: bold;
+}
+.userInfo .userElement .label {
+  width: 100px;
+  display: inline-block;
+  text-transform: uppercase;
+  font-weight: normal;
 }
 .userInfo .userIcons {
   display: inline-block;
@@ -387,6 +397,24 @@ div.button {
   padding: 2px;
   margin: 2px;
   font-size: 16px;
+  cursor: pointer;
+}
+.userInfo.newUser {
+  width: auto;
+  max-width: 400px;
+}
+.userInfo.newUser input {
+  padding: 3px 10px;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+  margin: 3px 0;
+  width: 250px;
+}
+.userInfo.newUser .saveButton,
+.userInfo.newUser .cancelButton {
+  text-align: center;
+  width: 100px;
+  margin-left: 100px;
 }
 .dayPreferences * {
   user-select: none;
@@ -419,4 +447,52 @@ ul.myReplacements .removeIcon {
   padding: 3px;
   color: #800;
   cursor: pointer;
+}
+.statisticsView {
+  margin-left: 20px;
+}
+.statisticsView .title {
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.statisticsView .monthlyChartContainer {
+  width: 800px;
+  height: 250px;
+}
+.statisticsView table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+.statisticsView table th,
+.statisticsView table td {
+  padding: 5px 10px;
+  text-align: center;
+  border: 1px solid #bbb;
+}
+.statisticsView table td {
+  font-size: 16px;
+  font-weight: bold;
+}
+.statisticsView table td.label {
+  text-align: left;
+  font-size: 14px;
+  font-weight: normal;
+}
+.statisticsView table td.total {
+  background-color: rgba(236, 207, 255, 0.25);
+}
+.statisticsView table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 6px 10px;
+  background-color: #eccfff;
+}
+.statisticsView table th.emptyCell {
+  border-left: none;
+  border-top: none;
+  background-color: transparent;
 }

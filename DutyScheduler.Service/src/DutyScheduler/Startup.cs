@@ -15,6 +15,8 @@ using Swashbuckle.Swagger.Model;
 using DutyScheduler.Middlewares;
 using DutyScheduler.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 
 namespace DutyScheduler
 {
@@ -45,7 +47,17 @@ namespace DutyScheduler
         {
             var pathToDoc = Configuration["Swagger:Path"];
 
-            services.AddMvc();
+			services.AddCors(options =>
+			{
+				options.AddPolicy("CorsPolicy", builder => builder
+				.AllowAnyOrigin()
+				.AllowAnyMethod()
+				.AllowAnyHeader()
+				.AllowCredentials());
+			});
+
+			services.AddMvc();
+			services.Configure<MvcOptions>(options => options.Filters.Add(new CorsAuthorizationFilterFactory("CorsPolicy")));
 
             // Use a PostgreSQL database
             var sqlConnectionString = Configuration.GetConnectionString("Postgres");
@@ -86,12 +98,6 @@ namespace DutyScheduler
                             ctx.Response.StatusCode == (int)HttpStatusCode.OK)
                         {
                             ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                            //var body = "{\"" + Constants.Unauthorized.Key + "\":\"" + Constants.Unauthorized.Value + "\"}";
-                            //var json = new
-                            //{
-                            //    errors = "bla"
-                            //};
-                            //ctx.Response.Body = json.ToString().GenerateStreamFromString();
                         }
                         else
                         {
@@ -103,16 +109,6 @@ namespace DutyScheduler
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowNeeded",
-                    builder =>
-                    {
-                        builder
-                        .AllowCredentials();
-                    });
-            });
 
             services.AddMvcCore();
 
@@ -129,9 +125,9 @@ namespace DutyScheduler
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            //app.UseIISIntegration();
+			app.UseCors("CorsPolicy");
 
-            DefaultFilesOptions options = new DefaultFilesOptions();
+			DefaultFilesOptions options = new DefaultFilesOptions();
             options.DefaultFileNames.Clear();
             options.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(options);

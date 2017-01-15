@@ -12,7 +12,7 @@ var App = React.createClass({
 		return {
 			attemptLogin: true,
 			isLoggedIn: false,
-			selectedItem: menuItems[2]
+			selectedItem: menuItems[0]
 		};
 	},
 

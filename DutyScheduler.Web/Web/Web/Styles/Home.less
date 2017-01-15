@@ -52,7 +52,9 @@ header {
 			cursor: pointer;
 
 			&.selected {
-				background-color: #3f1957;
+				background-color: #7800c3;
+				border-radius: 8px;
+				padding: 7px;
 			}
 		}
 	}
@@ -211,6 +213,25 @@ header {
 }
 
 
+.monthControls {
+	margin-bottom: 20px;
+
+	.button {
+		display: inline-block;
+		padding: 8px;
+		background-color: #eee;
+		border: 1px solid #ddd;
+		margin: 3px 5px;
+		cursor: pointer;
+		border-radius: 2px;
+	}
+
+	.month {
+		font-size: 20px;
+		font-weight: bold;
+		margin: 0 20px;
+	}
+}
 
 .calendarView {
 	margin-left: 10px;
@@ -222,26 +243,6 @@ header {
 		flex-basis: 360px;
 		text-align: center;
 
-		.monthControls {
-			margin-top: 20px;
-			margin-bottom: 20px;
-
-			.button {
-				display: inline-block;
-				padding: 8px;
-				background-color: #eee;
-				border: 1px solid #ddd;
-				margin: 3px 5px;
-				cursor: pointer;
-				border-radius: 2px;
-			}
-
-			.month {
-				font-size: 20px;
-				font-weight: bold;
-				margin: 0 20px;
-			}
-		}
 
 		.daysGrid {
 
@@ -429,20 +430,19 @@ div.button {
 	box-sizing: border-box;
 	width: 400px;
 	align-items: center;
-	padding: 4px;
+	padding: 6px;
+	padding-left: 10px;
 	margin: 10px;
 	border-radius: 4px;
-	background-color: #ecd7f8;
+	background-color: #f4e1ff;
 	border: 1px solid #707070;
-	border-radius: 2px;
-
-	&.admin {
-		border: 2px solid #3f46cc;
-		background-color: #e2c5f3;
-	}
 
 	&.currentUser {
-		border: 2px solid #ee4b4b;
+		border: 3px solid #3f46cc;
+	}
+
+	&.admin {
+		background-color: #bbb;
 	}
 
 	.userContainer {
@@ -453,6 +453,17 @@ div.button {
 	.userElement {
 		display: inline-block;
 		flex-grow: 1;
+		font-family: Roboto;
+		line-height: 1.4em;
+		font-size: 14px;
+		font-weight: bold;
+
+		.label {
+			width: 100px;
+			display: inline-block;
+			text-transform: uppercase;
+			font-weight: normal;
+		}
 	}
 
 	.userIcons {
@@ -463,6 +474,26 @@ div.button {
 			padding: 2px;
 			margin: 2px;
 			font-size: 16px;
+			cursor: pointer;
+		}
+	}
+
+	&.newUser {
+		width: auto;
+		max-width: 400px;
+
+		input {
+			padding: 3px 10px;
+			border: 1px solid #aaa;
+			border-radius: 2px;
+			margin: 3px 0;
+			width: 250px;
+		}
+
+		.saveButton, .cancelButton {
+			text-align: center;
+			width: 100px;
+			margin-left: 100px;
 		}
 	}
 }
@@ -506,5 +537,63 @@ ul.myReplacements {
 		padding: 3px;
 		color: #800;
 		cursor: pointer;
+	}
+}
+
+.statisticsView {
+	margin-left: 20px;
+
+	.title {
+		font-size: 16px;
+		font-weight: bold;
+		text-transform: uppercase;
+		margin-bottom: 20px;
+		margin-top: 20px;
+	}
+
+	.monthlyChartContainer {
+		width: 800px;
+		height: 250px;
+	}
+
+	table {
+		border-spacing: 0;
+		border-collapse: collapse;
+
+		th, td {
+			padding: 5px 10px;
+			text-align: center;
+			border: 1px solid #bbb;
+		}
+
+		td {
+			font-size: 16px;
+			font-weight: bold;
+		}
+
+
+		td.label {
+			text-align: left;
+			font-size: 14px;
+			font-weight: normal;
+		}
+
+		td.total {
+			background-color: rgba(236, 207, 255, 0.25);
+		}
+
+		th {
+			font-size: 12px;
+			text-transform: uppercase;
+			font-weight: bold;
+			padding: 6px 10px;
+			background-color: rgb(236, 207, 255);
+		}
+
+		th.emptyCell {
+			border-left: none;
+			border-top: none;
+			background-color: transparent;
+		}
 	}
 }

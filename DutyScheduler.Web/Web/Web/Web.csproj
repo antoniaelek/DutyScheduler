@@ -181,6 +181,7 @@
     <Content Include="Scripts\app\dayMyShift.jsx" />
     <Content Include="Scripts\app\login.jsx" />
     <Content Include="Scripts\app\dayHoliday.jsx" />
+    <Content Include="Scripts\app\userEdit.jsx" />
     <None Include="Scripts\app\main.jsx" />
     <Content Include="Scripts\app\routes.js" />
     <Content Include="Scripts\app\statistics.jsx" />
@@ -195,6 +196,7 @@
     <None Include="Scripts\jquery-3.1.1.intellisense.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\chart.min.js" />
     <Content Include="Scripts\jquery-3.1.1.js" />
     <Content Include="Scripts\jquery-3.1.1.min.js" />
     <Content Include="Scripts\jquery-3.1.1.slim.js" />
@@ -208,6 +210,7 @@
     <Content Include="Scripts\moment-with-locales.min.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\moment.min.js" />
+    <Content Include="Scripts\react-chartjs.min.js" />
     <Content Include="Scripts\react\react-dom-server.js" />
     <Content Include="Scripts\react\react-dom-server.min.js" />
     <Content Include="Scripts\react\react-dom.js" />
