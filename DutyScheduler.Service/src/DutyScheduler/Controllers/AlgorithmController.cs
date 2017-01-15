@@ -30,99 +30,104 @@ namespace DutyScheduler.Controllers
             _userManager = userManager;
         }
 
-
-
-        private void Algorithm(int month)
+        private bool Algorithm(DateTime date)
         {
-            var m = new Month(new DateTime(DateTime.Now.Year, month, 1));
-
-            // list of all existing users.
-            _context.Users.Load();
-            var availableusers = _context.Users.Select(u => u.Id).ToList();
-            
-            // counted preferences for all dates in month
-            Dictionary<DateTime, int> preferencesForDuty = CountPreferencesForMonth(new DateTime(DateTime.Now.Year, month, 1));
-
-            bool special = false;
-            string userMinNmb = "";
-            // loop through sorted dict with preferences - make shifts
-            foreach (KeyValuePair<DateTime, int> item in preferencesForDuty.OrderBy(key => key.Value))
+            // check if date is invalid
+            if (date.Month <= DateTime.Now.Month || date.Year < DateTime.Now.Year) return false;
+            else 
             {
-                // check if day is type special
-                special = isSpecial(item.Key);
+                var m = new Month(new DateTime(date.Year, date.Month, 1));
 
-                // choose available user with min number od previous duties and preference for that date
-                userMinNmb = UserWithMinNumAndPreference(special, item.Key, availableusers);  
-                if (userMinNmb == "")
-                {
-                    // no users with preferences available for duty (all scheduled), remove date to be considered for date without preference 
-                    preferencesForDuty.Remove(item.Key);
-                    continue;
-                }              
+                // list of all existing users.
+                _context.Users.Load();
+                var availableusers = _context.Users.Select(u => u.Id).ToList();
 
-                // create new shift
-                var entry = new Shift
-                {
-                    UserId = userMinNmb,
-                    Date = item.Key,
-                    IsRepleceable = false
-                };
-                // add to shifts
-                _context.Shift.Add(entry);
-                _context.SaveChanges();
+                // counted preferences for all dates in month
+                Dictionary<DateTime, int> preferencesForDuty = CountPreferencesForMonth(new DateTime(date.Year, date.Month, 1));
 
-                // remove user from availableuser since he has a duty now
-                availableusers.Remove(userMinNmb);
-
-                // if all users have a duty already
-                if (!availableusers.Any())
-                {
-                    availableusers = _context.Users.Select(u => u.Id).ToList();
-                }
-            }
-
-            // loop through all days of month left
-            DateTime currentDate = m.First;
-            while (currentDate <= m.Last)
-            {
-                // exclude all days in holidays, non-working days, dates in preferencesForDuty
-                if (m.Holidays.FirstOrDefault(h => h.Date == currentDate) == default(Holiday) &&
-                    m.NonWorkingDays.FirstOrDefault(h => h.Date == currentDate) == default(NonWorkingDay) &&
-                    !preferencesForDuty.ContainsKey(currentDate))
+                bool special = false;
+                string userMinNmb = "";
+                // loop through sorted dict with preferences - make shifts
+                foreach (KeyValuePair<DateTime, int> item in preferencesForDuty.OrderBy(key => key.Value))
                 {
                     // check if day is type special
-                    special = isSpecial(currentDate);
+                    special = isSpecial(item.Key);
 
-                    // choose available user with min number of previous duties without negative preference for that date
-                    userMinNmb = UserWithMinNumAndNoNegPreference(special, currentDate, availableusers);
+                    // choose available user with min number od previous duties and preference for that date
+                    userMinNmb = UserWithMinNumAndPreference(special, item.Key, availableusers);
                     if (userMinNmb == "")
                     {
-                        // no user without negative preference, force available with with min number of previous duties for duty
-                        userMinNmb = UserWithMinNum(special, currentDate, availableusers);
+                        // no users with preferences available for duty (all scheduled), remove date to be considered for date without preference 
+                        preferencesForDuty.Remove(item.Key);
+                        continue;
                     }
 
                     // create new shift
                     var entry = new Shift
                     {
                         UserId = userMinNmb,
-                        Date = currentDate,
+                        Date = item.Key,
                         IsRepleceable = false
                     };
                     // add to shifts
                     _context.Shift.Add(entry);
                     _context.SaveChanges();
-                    
-                    // remove user from availableusers since has has a duty now
+
+                    // remove user from availableuser since he has a duty now
                     availableusers.Remove(userMinNmb);
+
                     // if all users have a duty already
                     if (!availableusers.Any())
                     {
                         availableusers = _context.Users.Select(u => u.Id).ToList();
                     }
-
                 }
-                currentDate.AddDays(1);
+
+                // loop through all days of month left
+                DateTime currentDate = m.First;
+                while (currentDate <= m.Last)
+                {
+                    // exclude all days in holidays, non-working days, dates in preferencesForDuty
+                    if (m.Holidays.FirstOrDefault(h => h.Date == currentDate) == default(Holiday) &&
+                        m.NonWorkingDays.FirstOrDefault(h => h.Date == currentDate) == default(NonWorkingDay) &&
+                        !preferencesForDuty.ContainsKey(currentDate))
+                    {
+                        // check if day is type special
+                        special = isSpecial(currentDate);
+
+                        // choose available user with min number of previous duties without negative preference for that date
+                        userMinNmb = UserWithMinNumAndNoNegPreference(special, currentDate, availableusers);
+                        if (userMinNmb == "")
+                        {
+                            // no user without negative preference, force available with with min number of previous duties for duty
+                            userMinNmb = UserWithMinNum(special, currentDate, availableusers);
+                        }
+
+                        // create new shift
+                        var entry = new Shift
+                        {
+                            UserId = userMinNmb,
+                            Date = currentDate,
+                            IsRepleceable = false
+                        };
+                        // add to shifts
+                        _context.Shift.Add(entry);
+                        _context.SaveChanges();
+
+                        // remove user from availableusers since has has a duty now
+                        availableusers.Remove(userMinNmb);
+                        // if all users have a duty already
+                        if (!availableusers.Any())
+                        {
+                            availableusers = _context.Users.Select(u => u.Id).ToList();
+                        }
+
+                    }
+                    currentDate.AddDays(1);
+                }
+                return true;
             }
+            
         }
 
         // check if date is special
