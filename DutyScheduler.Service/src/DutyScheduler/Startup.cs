@@ -13,6 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
 using DutyScheduler.Middlewares;
+using DutyScheduler.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 namespace DutyScheduler
 {
@@ -149,6 +151,34 @@ namespace DutyScheduler
 
             app.UseSwagger();
             app.UseSwaggerUi();
+
+            try
+            {
+                using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()
+                    .CreateScope())
+                {
+                    serviceScope.ServiceProvider.GetService<ApplicationDbContext>()
+                         .Database.Migrate();
+
+                    var userManager = app.ApplicationServices.GetService<UserManager<User>>();
+                    serviceScope.ServiceProvider.GetService<ApplicationDbContext>().EnsureSeedData(userManager, DefaultAdmin(), Configuration["Admin:Password"]);
+                }
+            }
+            catch { }
+        }
+
+        private RegisterViewModel DefaultAdmin()
+        {
+            return new RegisterViewModel()
+            {
+                UserName = Configuration["Admin:Username"],
+                Name = Configuration["Admin:Username"],
+                LastName = Configuration["Admin:LastName"],
+                Password = Configuration["Admin:Password"],
+                Email = Configuration["Admin:Email"],
+                Phone= Configuration["Admin:Phone"],
+                Office = Configuration["Admin:Office"]
+        };
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -63,21 +62,31 @@ namespace DutyScheduler.Controllers
         public JsonResult Get()
         {
             _context.Users.Load();
-            var users = _context.Users.ToList();
+            var users = _context.Users.ToList().OrderBy(u=>u.LastName).ThenBy(u=>u.Name).ThenBy(u=>u.Email);
             return users.ToJson();
         }
 
         /// <summary>
-        /// Register.
+        /// Admin can register a new user.
         /// </summary>
         /// <param name="viewModel">User profile to be created.</param>
-        /// <returns>New user JSON data.</returns>
+        /// <returns></returns>
         [SwaggerResponse(HttpStatusCode.Created, "User profile successfully created.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.Forbidden, "User does not have the sufficient rights to perform the action.")]
         [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
         [HttpPost]
-        [AllowAnonymous]
+        [Authorize]
+        //[AllowAnonymous]
         public async Task<JsonResult> Create([FromBody]RegisterViewModel viewModel)
         {
+            // check that user is logged in
+            var currUser = GetCurrentUser();
+            if (currUser == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
+
+            // check that the current user is admin
+            if (!currUser.IsAdmin) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
+
             _context.Users.Load();
             var usernames = _context.Users.Select(u => u.NormalizedUserName);
             if (usernames.Contains(viewModel.UserName.ToUpper()))
@@ -87,8 +96,8 @@ namespace DutyScheduler.Controllers
             if (emails.Contains(viewModel.Email.ToUpper()))
                 ModelState.AddModelError("Email", "There already exists an account registered with the specified email.");
 
-            if (viewModel.Password.Length < 4)
-                ModelState.AddModelError("Password", "Password must contain at least 4 characters.");
+            //if (viewModel.Password.Length < 4)
+            //    ModelState.AddModelError("Password", "Password must contain at least 4 characters.");
 
             if (ModelState.IsValid)
             {
@@ -120,6 +129,32 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
+        /// Change password.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Password successfully changed.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
+        [HttpPost("password")]
+        [Authorize]
+        public ActionResult ChangePassword([FromBody] PasswordViewModel model)
+        {
+            var user = GetCurrentUser();
+            if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
+            if (ModelState.IsValid)
+            {
+                var h = new PasswordHasher<User>();
+                user.PasswordHash = h.HashPassword(user, model.Password);
+                _context.Users.Update(user);
+                _context.SaveChanges();
+
+                return 200.SuccessStatusCode(Constants.PasswordChangeSuccess.ToDict());
+            }
+            return 400.ErrorStatusCode(ModelState.ValidationErrors());
+        }
+
+        /// <summary>
         /// Update user details.
         /// </summary>
         /// <param name="viewModel">New user data.</param>
@@ -128,7 +163,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
         [HttpPut]
         [Authorize]
-        public async Task<JsonResult> Update([FromBody]UpdateUserViewModel viewModel)
+        public JsonResult Update([FromBody]UpdateUserViewModel viewModel)
         {
             var user = GetCurrentUser();
             if (user == default(User)) return 401.ErrorStatusCode(Constants.Unauthorized);
@@ -208,17 +243,6 @@ namespace DutyScheduler.Controllers
             user.IsAdmin = setAdmin.Value;
             _context.SaveChanges();
             return user.ToJson();
-        }
-
-        private async Task<JsonResult> CheckUserCredentials(string id)
-        {
-            // User null, how did we even get past the Authorize attribute?
-            var user = await _userManager.GetUser(User.Identity.Name);
-            if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
-
-            // This user does not have enough rights
-            if (user.UserName != id) return 403.ErrorStatusCode(Constants.Forbidden.ToDict());
-            return 200.SuccessStatusCode(Constants.OK.ToDict());
         }
 
         private User GetCurrentUser()
