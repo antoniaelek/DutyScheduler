@@ -36,7 +36,7 @@
 			.fail(reportError);
 	},
 
-	onDayUpdate: function(){
+	onDayUpdate: function () {
 		this.load(this.state.selectedYear, this.state.selectedMonth);
 	},
 
@@ -65,7 +65,7 @@
 				icon = <Icon icon="user-circle-o" />;
 			}
 
-			return <div className="dayNumber"><span className={shorterDayClassName}>{dayNumber}</span><div>{icon}{replacementIcon}</div></div>;
+			return <div className="dayNumber"><span className={shorterDayClassName }>{dayNumber}</span><div>{icon}{replacementIcon}</div></div>;
 		}
 
 		if (day.date.isAfter(moment())) {
@@ -77,7 +77,7 @@
 				icon = <Icon className="notprefered" icon="thumbs-down" />;
 			}
 
-			return <div className="dayNumber"><span className={shorterDayClassName}>{dayNumber}</span><div>{icon}</div></div>;
+		return <div className="dayNumber"><span className={shorterDayClassName }>{dayNumber}</span><div>{icon}</div></div>;
 		}
 
 		//var icon = Math.random() < 0.2 ? <Icon icon="user-circle-o" /> : null;
@@ -88,7 +88,7 @@
 	onDayClicked: function (dayNumber) {
 		this.setState({ selectedDayNumber: dayNumber });
 	},
-	
+
 	renderRows: function () {
 		// Sunday is first day
 		var month = moment()
@@ -180,12 +180,23 @@
 		return <DayPanel onDayUpdate={this.onDayUpdate} day={day } />;
 	},
 
+	runAlgorithm: function () {
+		API.Ajax("GET", "api/Algorithm/year=" + this.state.selectedYear + "&month=" + this.state.selectedMonth)
+		.done(this.load)
+		.fail(reportError);
+	},
+
 	render: function () {
 
 		if (this.state.days === null)
 			return null;
 
 		var rows = this.renderRows();
+
+		algorithmButton = null;
+		if (CurrentUser.isAdmin) {
+			algorithmButton = <div className="button" onClick={this.runAlgorithm }><Icon icon="cogs" /> Run scheduling algorithm</div>;
+		}
 
 		return (
 			<div className="calendarView">
@@ -198,6 +209,9 @@
 						<div className="button" onClick={this.onNextMonthClicked}>
 							<Icon icon="chevron-right" />
 						</div>
+					</div>
+					<div className="runAlgorithm">
+						{algorithmButton}
 					</div>
 					<table className="daysGrid">
 						<thead>
