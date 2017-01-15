@@ -97,6 +97,20 @@ namespace DutyScheduler.Controllers
         }
 
         /// <summary>
+        /// Get not yet completed shifts for user specified by <paramref name="username"/>.
+        /// </summary>
+        /// <param name="username">Username</param>
+        /// <returns></returns>
+        [SwaggerResponse(HttpStatusCode.OK, "Shifts fetched successfully.")]
+        [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
+        [AllowAnonymous]
+        [HttpGet("user/{username}")]
+        public ActionResult GetNotCompletedShifts(string username)
+        {
+            return GetUserNotCompletedShifts(username);
+        }
+
+        /// <summary>
         /// Get shifts for user specified by <paramref name="username"/> and <paramref name="month"/>.
         /// </summary>
         /// <param name="username">Username</param>
@@ -203,6 +217,20 @@ namespace DutyScheduler.Controllers
             var requests = _context.ReplacementRequest.Where(r => r.ShiftId == shift.Id).ToList();
 
             return shift.ToJson(requests);
+        }
+
+        private ActionResult GetUserNotCompletedShifts(string username)
+        {
+            _context.Users.AsNoTracking().Load();
+            if (_context.Users.FirstOrDefault(u => u.UserName == username) == default(User))
+                return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
+
+            _context.Shift.Include(s => s.User).AsNoTracking().Load();
+            IEnumerable<Shift> ret = _context.Shift.Where(s => s.UserId == username &&
+                                                s.Date > DateTime.Now)
+                                                .OrderBy(s => s.Date);
+            if (ret == null) ret = new List<Shift>();
+            return ret.ToJson();
         }
 
         private ActionResult GetUserShiftsInMonth(string username, DateTime date)
