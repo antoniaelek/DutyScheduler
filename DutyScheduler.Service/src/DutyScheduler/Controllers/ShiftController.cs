@@ -104,7 +104,7 @@ namespace DutyScheduler.Controllers
         [SwaggerResponse(HttpStatusCode.OK, "Shifts fetched successfully.")]
         [SwaggerResponse(HttpStatusCode.NotFound, "Trying to fetch shifts for non existing user.")]
         [AllowAnonymous]
-        [HttpGet("user/{username}")]
+        [HttpGet("user/{username}/undone")]
         public ActionResult GetNotCompletedShifts(string username)
         {
             return GetUserNotCompletedShifts(username);
