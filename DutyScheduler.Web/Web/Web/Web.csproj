@@ -176,6 +176,7 @@
     <Content Include="Scripts\app\header.jsx" />
     <Content Include="Scripts\app\dayWeekend.jsx" />
     <Content Include="Scripts\app\dayTheirShift.jsx" />
+    <Content Include="Scripts\app\credits.jsx" />
     <None Include="Scripts\app\dayPanel.jsx" />
     <Content Include="Scripts\app\icon.jsx" />
     <Content Include="Scripts\app\dayMyShift.jsx" />
@@ -185,10 +186,7 @@
     <None Include="Scripts\app\main.jsx" />
     <Content Include="Scripts\app\routes.js" />
     <Content Include="Scripts\app\statistics.jsx" />
-    <Content Include="Scripts\app\scheduleView.jsx" />
     <Content Include="Scripts\app\shift.jsx" />
-    <Content Include="Scripts\app\preferenceView.jsx" />
-    <Content Include="Scripts\app\preferenceDay.jsx" />
     <Content Include="Scripts\app\user.jsx" />
     <Content Include="Scripts\app\userView.jsx" />
     <Content Include="Scripts\app\calendarView.jsx" />

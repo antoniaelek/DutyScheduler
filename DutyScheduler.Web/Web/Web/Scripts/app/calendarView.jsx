@@ -181,7 +181,7 @@
 	},
 
 	runAlgorithm: function () {
-		API.Ajax("GET", "api/Algorithm/year=" + this.state.selectedYear + "&month=" + this.state.selectedMonth)
+		API.Ajax("GET", "api/Algorithm/year=" + this.state.selectedYear + "&month=" + (this.state.selectedMonth + 1))
 		.done(this.load)
 		.fail(reportError);
 	},

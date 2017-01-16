@@ -1,9 +1,8 @@
 ﻿var menuItems = [
-	//{ text: "Raspored", content: <ScheduleView />, icon: "calendar" },
-	//{ text: "Preferences", content: <PreferenceView />, icon: "calendar-check-o" },
 	{ text: "Calendar", content: <CalendarView />, icon: "calendar" },
 	{ text: "Statistics", content: <Statistics />, icon: "pie-chart" },
 	{ text: "Users", content: <UserView />, icon: "user" },
+	{ text: "Credits", content: <Credits />, icon: "users" }
 ];
 
 var App = React.createClass({

@@ -496,3 +496,12 @@ ul.myReplacements .removeIcon {
   border-top: none;
   background-color: transparent;
 }
+.credits {
+  padding: 25px;
+}
+.credits .creditsList {
+  padding: 15px;
+}
+.credits .creditsList li {
+  padding: 3px;
+}
