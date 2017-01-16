@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_statistics"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.ljudevit.dutyschedulerapp.Statistics">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TableRow>
+
+                <TextView android:minEms="10" />
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:text="Ordinary" />
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:text="Special" />
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:text="Total" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="Completed" />
+
+                <TextView
+                    android:id="@+id/ordinaryMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/specialMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/totalMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="Replaced someone" />
+
+                <TextView
+                    android:id="@+id/ordinaryByMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/specialByMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/totalByMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="Replacedb by someone" />
+
+                <TextView
+                    android:id="@+id/ordinaryForMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/specialForMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+
+                <TextView
+                    android:id="@+id/totalForMe"
+                    android:background="@drawable/table_element"
+                    android:gravity="center"
+                    android:text="-" />
+            </TableRow>
+        </TableLayout>
+    </HorizontalScrollView>
+</RelativeLayout>
