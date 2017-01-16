@@ -2,24 +2,18 @@
 
 namespace DutyScheduler.Models
 {
-    public class SpecialDay : IDay
+    public class SpecialDay : Day
     {
-        public DateTime Date { get; }
-        public string Name { get; }
-        public string Type { get; } = "special";
-        public bool IsReplaceable { get; set; }
-        public bool? IsPrefered { get; set; }
-        public string Scheduled { get; set; }
+        public override DateTime Date { get; set; }
 
+        public override string Name { get; }
+
+        public override string Type { get; } = "special";
+        
         public SpecialDay(string name, DateTime date)
         {
             Date = date;
             Name = name;
-        }
-
-        public override string ToString()
-        {
-            return Date.ToString("d.M.yyyy") + " " + Name;
         }
     }
 }

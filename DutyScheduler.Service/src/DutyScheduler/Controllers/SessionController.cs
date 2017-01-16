@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using DutyScheduler.Helpers;
 using DutyScheduler.Models;
@@ -7,8 +9,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.SwaggerGen.Annotations;
 
 namespace DutyScheduler.Controllers
 {
@@ -43,6 +48,8 @@ namespace DutyScheduler.Controllers
         /// Logout.
         /// </summary>
         /// <returns>>HTTP status code indicating outcome of the operation.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User successfully logged out.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Other errors.")]
         [HttpDelete]
         [Authorize]
         public async Task Logout()
@@ -50,12 +57,27 @@ namespace DutyScheduler.Controllers
             await _signInManager.SignOutAsync();
         }
 
+        /// <summary>
+        /// Get logged in user
+        /// </summary>
+        /// <returns>User object.</returns>
+        [SwaggerResponse(HttpStatusCode.OK, "User object.")]
+        [SwaggerResponse(HttpStatusCode.Unauthorized, "User is not logged in.")]
+        [HttpGet]
+        [Authorize]
+        public JsonResult Get()
+        {
+            var user = GetCurrentUser();
+            return user.ToJson();
+        }
 
         /// <summary>
-        /// Login.
+        /// Login either using the username and password or email and password combination.
         /// </summary>
         /// <param name="viewModel">User to login.</param>
         /// <returns>>HTTP status code and message indicating outcome of the operation.</returns>
+        [SwaggerResponse(HttpStatusCode.Created, "User successfully logged in.")]
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Validation errors.")]
         [HttpPost]
         [AllowAnonymous]
         public async Task<JsonResult> Login([FromBody]LoginViewModel viewModel)
@@ -75,30 +97,22 @@ namespace DutyScheduler.Controllers
                 if (viewModel.Email != null) 
                 {
                     user = await _userManager.FindByEmailAsync(viewModel.Email);
-                    if (user == null) return 404.ErrorStatusCode();
+                    if (user == null) return 404.ErrorStatusCode(Constants.UserNotFound.ToDict());
                 }
                 else if (viewModel.UserName != null || 
                          (user == null && viewModel.UserName != null)) 
                     user = await _userManager.FindByNameAsync(viewModel.UserName);
 
+                if (user == null) return 401.ErrorStatusCode(Constants.Unauthorized.ToDict());
+
                 var result = await _signInManager.
-                    PasswordSignInAsync(user.UserName,
+                    PasswordSignInAsync(user?.UserName,
                                         viewModel.Password,
                                         true, false);
                 if (result.Succeeded)
                 {
-                    user = await _userManager.FindByEmailAsync(user.Email);
-                    var tmp = _userManager.GetRolesAsync(user);
-                    return new JsonResult(new
-                    {
-                        Success = true,
-                        Username = user.UserName,
-                        user.Name,
-                        user.LastName,
-                        user.Email,
-                        user.Office,
-                        user.Phone
-                    });
+                    user = await _userManager.FindByEmailAsync(user?.Email);
+                    return user.ToJson();
                 }
             }
             if (!ModelState.Keys.Any()) 
@@ -110,6 +124,16 @@ namespace DutyScheduler.Controllers
             var ret = new JsonResult(new { Success = false, Errors = allErrors });
             ret.StatusCode = 400;
             return ret;
+        }
+
+        private User GetCurrentUser()
+        {
+            _context.Users.AsNoTracking().Load();
+            var user = _userManager.GetUserId(User);
+            if (user == null) return null;
+            var userObj = _context.Users.FirstOrDefault(u => u.Id == user);
+            if (userObj == default(User)) return null;
+            return userObj;
         }
     }
 }

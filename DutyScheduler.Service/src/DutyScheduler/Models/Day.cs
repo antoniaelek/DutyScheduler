@@ -2,24 +2,27 @@
 
 namespace DutyScheduler.Models
 {
-    public class Day : IDay
+    public abstract class Day
     {
-        public DateTime Date { get; }
-        public string Name { get; }
-        public string Type { get; } = "ordinary";
-        public bool IsReplaceable { get; set; }
-        public bool? IsPrefered { get; set; }
-        public string Scheduled { get; set; }
+        private static readonly string DateFormat = "yyyy-MM-dd";
 
-        public Day(DateTime date)
-        {
-            Date = date;
-            // Name = date.DayOfWeek.ToString();
-        }
+        public abstract DateTime Date { get; set; }
+
+        public abstract string Name { get; }
+
+        public abstract string Type { get; }
+
+        public string WeekDay => Date.DayOfWeek.ToString();
+
+        //public bool IsReplaceable { get; set; }
+
+        //public bool? IsPrefered { get; set; }
+
+        //public Shift Scheduled { get; set; }
 
         public override string ToString()
         {
-            return Date.ToString("d.M.yyyy");
+            return Date.ToString(DateFormat);
         }
     }
 }

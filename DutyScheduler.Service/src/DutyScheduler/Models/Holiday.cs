@@ -2,24 +2,18 @@
 
 namespace DutyScheduler.Models
 {
-    public class Holiday : IDay
+    public class Holiday : Day
     {
-        public DateTime Date { get; }
-        public string Name { get; }
-        public string Type { get; } = "holiday";
-        public bool IsReplaceable { get; set; }
-        public bool? IsPrefered { get; set; }
-        public string Scheduled { get; set; }
+        public override DateTime Date { get; set; }
+
+        public override string Name { get; }
+
+        public override string Type { get; } = "holiday";
 
         public Holiday(string name, DateTime date)
         {
             Date = date;
             Name = name;
-        }
-
-        public override string ToString()
-        {
-            return Date.ToString("d.M.yyyy") + " " + Name;
         }
     }
 }
