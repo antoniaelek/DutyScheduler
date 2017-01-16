@@ -16,6 +16,24 @@ class User implements Serializable{
     private String surname;
     private String phone;
     private String office;
+    private Boolean isAdmin;
+    private String cookie;
+
+    public String getCookie() {
+        return cookie;
+    }
+
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
+
+    public Boolean getAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        isAdmin = admin;
+    }
 
     public Integer getID() {
         return ID;

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Duty Scheduler</string>
     <string name="action_settings">Settings</string>
-    <string name="login_user_name">User name</string>
+    <string name="login_user_name">User name(email)</string>
     <string name="login_password">Password</string>
     <string name="login_remember_me">Remember me</string>
     <string name="login_button_text">Log in</string>
@@ -10,4 +10,12 @@
     <string name="login_settings_title">Log in settings</string>
     <string name="title_activity_log_in_settings">Log in settings</string>
     <string name="close_button_desc">close</string>
+    <string name="single_event_special_text">do 15:00h</string>
+    <string name="title_activity_calendar_display">CalendarDisplay</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -2,13 +2,58 @@ package com.example.ljudevit.dutyschedulerapp;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 class Schedule implements Serializable {
+    private Date date;
+    private String weekday;
     private String type;
     private String name;
-    private String date;
-    private String scheduled;
+    private Boolean isPrefered;
     private Boolean isReplaceable;
+    private String shiftId;
+    private List<Replacement> replacementRequests;
+    private User scheduled;
+
+    public List<Replacement> getReplacementRequests() {
+        return replacementRequests;
+    }
+
+    public void setReplacementRequests(List<Replacement> replacementRequests) {
+        this.replacementRequests = replacementRequests;
+    }
+
+    public String getShiftId() {
+        return shiftId;
+    }
+
+    public void setShiftId(String id) {
+        this.shiftId = id;
+    }
+
+    public Boolean getPrefered() {
+        return isPrefered;
+    }
+
+    public void setPrefered(Boolean prefered) {
+        isPrefered = prefered;
+    }
+
+    public String getWeekday() {
+        return weekday;
+    }
+
+    public void setWeekday(String weekday) {
+        this.weekday = weekday;
+    }
+
+    public Boolean getIsPrefered() {
+        return isPrefered;
+    }
+
+    public void setIsPrefered(Boolean isPrefered) {
+        this.isPrefered = isPrefered;
+    }
 
     public String getType() {
         return type;
@@ -26,19 +71,19 @@ class Schedule implements Serializable {
         this.name = name;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    void setDate(String date) {
+    void setDate(Date date) {
         this.date = date;
     }
 
-    public String getScheduled() {
+    public User getScheduled() {
         return scheduled;
     }
 
-    void setScheduled(String scheduled) {
+    void setScheduled(User scheduled) {
         this.scheduled = scheduled;
     }
 

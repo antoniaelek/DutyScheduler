@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_calendar"
+            android:title="Kalendar" />
+        <item
+            android:id="@+id/nav_statistics"
+            android:title="Statistika" />
+        <item
+            android:id="@+id/nav_account"
+            android:title="Moj račun" />
+        <item
+            android:id="@+id/nav_logout"
+            android:title="Odjava" />
+    </group>
+</menu>

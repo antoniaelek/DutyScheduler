@@ -30,11 +30,14 @@ public class LogInActivity extends AppCompatActivity {
     private EditText password;
     private SharedPreferences logInPref;
     DBHelper logInDB;
+    ProgressDialog logginDialog ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
+
+        logginDialog = new ProgressDialog(LogInActivity.this);
 
         logInPref = getSharedPreferences(LOGIN_PREFERENCE_INFO, MODE_PRIVATE);
         Boolean useDB = logInPref.getBoolean("localDB",false);
@@ -58,7 +61,7 @@ public class LogInActivity extends AppCompatActivity {
             }
         });
 
-        userName.setText(logInPref.getString("rememberedName", ""));
+        userName.setText(logInPref.getString("rememberedUserName", ""));
         password.setText(logInPref.getString("rememberedPass", ""));
         if(userName.getText().length()>0) {
             remember.setChecked(true);
@@ -76,7 +79,7 @@ public class LogInActivity extends AppCompatActivity {
 
     private void logIn(){
         //prikaz
-        final ProgressDialog logginDialog = new ProgressDialog(LogInActivity.this);
+
         logginDialog.setIndeterminate(true);
         logginDialog.setMessage("Logging in...");
         logginDialog.show();
@@ -85,36 +88,47 @@ public class LogInActivity extends AppCompatActivity {
         String usersName = userName.getText().toString();
         String usersPass = password.getText().toString();
 
-        final String address = logInPref.getString("mainURL","http://10.150.150.2:5000");
+        //TODO uhvatiti timeout
+        final String address = logInPref.getString("mainURL","http://192.168.0.28:5000");
         User loggedInUser = new HttpHandler().logIn(address,usersName,usersPass);
-        Toast.makeText(getApplicationContext(), loggedInUser.toString(), Toast.LENGTH_SHORT).show();
-        if(!loggedInUser.getUsername().isEmpty()) {
+        if(loggedInUser.getUsername() != null) {
+            loggedInUser.setPassword(usersPass);
             //spremanje login podataka
+            SharedPreferences.Editor editor = logInPref.edit();
             CheckBox remember = (CheckBox) findViewById(R.id.checkbox);
+            editor.clear();
+            editor.putString("mainURL", address);
+            editor.putString("loginUser", loggedInUser.getUsername());
+            editor.putString("cookie", loggedInUser.getCookie());
             if (remember.isChecked()) {
-                SharedPreferences.Editor editor = logInPref.edit();
-                editor.clear();
-                editor.putString("mainURL", address);
                 editor.putString("rememberedPass", usersPass);
                 editor.putString("rememberedUserName", usersName);
                 editor.putString("rememberedName", loggedInUser.getName());
                 editor.putString("rememberedSurname", loggedInUser.getSurname());
                 editor.putString("rememberedPhone", loggedInUser.getPhone());
                 editor.putString("rememberedOffice", loggedInUser.getOffice());
+                editor.putBoolean("rememberedAdmin", loggedInUser.getAdmin());
                 editor.apply();
             }
 
-            Intent intent = new Intent(getApplicationContext(), CalendarActivity.class);
+            Intent intent = new Intent(getApplicationContext(), CalendarDisplay.class);
             intent.putExtra("loggedInUser", loggedInUser);
             startActivity(intent);
             Toast.makeText(getApplicationContext(), "Logged as " + usersName + " successfully!", Toast.LENGTH_SHORT).show();
-            logginDialog.hide();
         }
         else{
             Toast.makeText(getApplicationContext(), "Incorrect username or password!", Toast.LENGTH_SHORT).show();
+            //refresh shared prefs
+            logInPref.edit().remove("mainURL").apply();
+            logginDialog.hide();
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        logginDialog.hide();
+    }
 
     private void popuniBazu(){
 

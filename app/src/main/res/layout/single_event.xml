@@ -43,16 +43,12 @@
         android:padding="5dp"
         android:layout_gravity="center">
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:text="Dežurni:"/>
-        <TextView
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/dezurni"
             android:textColor="@android:color/black"
-            android:text="Irena Oršolić"/>
+            />
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
@@ -61,16 +57,12 @@
         android:padding="5dp"
         android:layout_gravity="center">
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:text="Soba:"/>
-        <TextView
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/office"
             android:textColor="@android:color/black"
-            android:text="256"/>
+            />
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
@@ -79,18 +71,15 @@
         android:padding="5dp"
         android:layout_gravity="center">
         <TextView
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/phone"
             android:textColor="@android:color/black"
-            android:text="Kućni tel. broj:"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/telefon"
-            android:textColor="@android:color/black"
-            android:text="255"/>
+            />
     </LinearLayout>
     <LinearLayout
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/napomenaLayout"
@@ -99,16 +88,23 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:text="Napomena:"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/napomena"
             android:textColor="@android:color/black"
-            android:text="do 15:00h"/>
+            android:text="@string/single_event_special_text"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/spinner_layout"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            ></Spinner>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
