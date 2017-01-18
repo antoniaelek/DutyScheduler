@@ -257,12 +257,13 @@ namespace DutyScheduler.Controllers
 			var usersWithNegPreference = _context.Preference.ToList().Where(d => d.Date == date && d.IsPreferred == false);
 
 			Dictionary<string, int> previousDuties = GetUsersWithNumberOfDuties(special);
-			foreach (KeyValuePair<string, int> item in previousDuties.OrderBy(key => key.Value))
+            foreach (KeyValuePair<string, int> item in previousDuties.OrderBy(key => key.Value))
 			{
 				// if user is available, give him new duty
 				if (available.Any(u => u == item.Key) && !usersWithNegPreference.Any(p => p.UserId == item.Key))
 				{
 					user = item.Key;
+				    break;
 				}
 			}
 			return user;
