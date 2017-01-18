@@ -66,7 +66,7 @@ public class CalendarView extends LinearLayout {
     private String userName;
     private HashSet<Schedule> currentMonth = new HashSet<>();
     private String cookie;
-    private Boolean isAdmin=false;
+    private Boolean isAdmin = false;
 
     public CalendarView(Context context) {
         super(context);
@@ -191,9 +191,10 @@ public class CalendarView extends LinearLayout {
                         TextView dezurni = (TextView) eventView.findViewById(R.id.dezurni);
                         TextView office = (TextView) eventView.findViewById(R.id.office);
                         TextView phone = (TextView) eventView.findViewById(R.id.phone);
-                        LinearLayout napomena = (LinearLayout) eventView.findViewById(R.id.napomenaLayout);
+                        TextView napomena = (TextView) eventView.findViewById(R.id.napomena);
                         final Button traziZamjenu = (Button) eventView.findViewById(R.id.traziZamjenuButton);
                         final Button ponudiZamjenu = (Button) eventView.findViewById(R.id.ponudiZamjenuButton);
+                        final Button obrisiPreferencu = (Button) eventView.findViewById(R.id.obrisiPreferencu);
 
                         User scheduled = eventDate.getScheduled();
                         //holidays and weekends
@@ -288,18 +289,18 @@ public class CalendarView extends LinearLayout {
                                     offerReplacements.setAdapter(spinnerAdapter);
 
 */
-                                    ponudiZamjenu.setOnClickListener(new OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            try {
+                                ponudiZamjenu.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        try {
 
-                                                new HttpHandler().offerReplacement(hostURL, cookie, shiftId, "");
-                                                Toast.makeText(getContext(), "Ponuda poslana", Toast.LENGTH_LONG).show();
-                                            } catch (ExecutionException | InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
+                                            new HttpHandler().offerReplacement(hostURL, cookie, shiftId, "");
+                                            Toast.makeText(getContext(), "Ponuda poslana", Toast.LENGTH_LONG).show();
+                                        } catch (ExecutionException | InterruptedException e) {
+                                            e.printStackTrace();
                                         }
-                                    });
+                                    }
+                                });
                             }
                         }
                         //non existant shift
@@ -316,54 +317,63 @@ public class CalendarView extends LinearLayout {
                                 if (eventDate.getType().equals("special")) {
                                     napomena.setVisibility(VISIBLE);
                                 }
+                                obrisiPreferencu.setVisibility(VISIBLE);
                                 traziZamjenu.setVisibility(VISIBLE);
                                 traziZamjenu.setText("Odgovara mi dežurstvo");
                                 ponudiZamjenu.setVisibility(VISIBLE);
                                 ponudiZamjenu.setText("Ne odgovara mi dežurstvo");
 
-                                if (eventDate.getIsPrefered() != null && eventDate.getIsPrefered()) {
-                                    traziZamjenu.setBackgroundColor(Color.GREEN);
-                                    traziZamjenu.setClickable(false);
-                                }
-                                //ako nije odabran
-                                else {
-                                    traziZamjenu.setOnClickListener(new OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            try {
-                                                new HttpHandler().changePreference(hostURL, cookie, true, prefDate);
-                                                traziZamjenu.setClickable(false);
-                                                traziZamjenu.setBackgroundColor(Color.GREEN);
-                                                setBackgroundResource(android.R.drawable.btn_default);
-                                                ponudiZamjenu.setClickable(true);
-                                            } catch (ExecutionException | InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    });
+                                if (eventDate.getPrefered() != null) {
+                                    if (eventDate.getPrefered()) {
+                                        traziZamjenu.setBackgroundColor(Color.GREEN);
+                                    } else ponudiZamjenu.setBackgroundColor(Color.RED);
                                 }
 
-                                if (eventDate.getIsPrefered() != null && !eventDate.getIsPrefered()) {
-                                    ponudiZamjenu.setBackgroundColor(Color.RED);
-                                    ponudiZamjenu.setClickable(false);
-                                }
-                                //ako je odabran
-                                else {
-                                    ponudiZamjenu.setOnClickListener(new OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            try {
-                                                new HttpHandler().changePreference(hostURL, cookie, false, prefDate);
-                                                ponudiZamjenu.setClickable(false);
-                                                ponudiZamjenu.setBackgroundColor(Color.RED);
-                                                traziZamjenu.setBackgroundResource(android.R.drawable.btn_default);
-                                                traziZamjenu.setClickable(true);
-                                            } catch (ExecutionException | InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
+                                traziZamjenu.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        try {
+                                            new HttpHandler().changePreference(hostURL, cookie, true, prefDate);
+                                            traziZamjenu.setBackgroundColor(Color.GREEN);
+                                            ponudiZamjenu.setBackgroundResource(android.R.drawable.btn_default);
+                                            eventDate.setPrefered(true);
+
+                                        } catch (ExecutionException | InterruptedException e) {
+                                            e.printStackTrace();
                                         }
-                                    });
-                                }
+                                    }
+                                });
+
+
+                                //ako je odabran
+                                ponudiZamjenu.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        try {
+                                            new HttpHandler().changePreference(hostURL, cookie, false, prefDate);
+                                            ponudiZamjenu.setBackgroundColor(Color.RED);
+                                            traziZamjenu.setBackgroundResource(android.R.drawable.btn_default);
+                                        } catch (ExecutionException | InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+
+                                obrisiPreferencu.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        try {
+                                            new HttpHandler().changePreference(hostURL, cookie, null, prefDate);
+                                            traziZamjenu.setBackgroundResource(android.R.drawable.btn_default);
+                                            ponudiZamjenu.setBackgroundResource(android.R.drawable.btn_default);
+                                        } catch (ExecutionException e) {
+                                            e.printStackTrace();
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+
                             }
                             //ako je prošao datum- ništa
                             else return;
@@ -403,14 +413,14 @@ public class CalendarView extends LinearLayout {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-        if(isAdmin){
+        if (isAdmin) {
             generate = (ImageButton) findViewById(R.id.generate_schedule);
             generate.setVisibility(VISIBLE);
             generate.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     try {
-                        new HttpHandler().createSchedule(hostURL, cookie,currentDate.getTime());
+                        new HttpHandler().createSchedule(hostURL, cookie, currentDate.getTime());
                         updateCalendar(currentMonth);
                     } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
@@ -504,8 +514,8 @@ public class CalendarView extends LinearLayout {
                         //nema shift
                         if (eventDate.getScheduled() == null) {
                             //ima true/false vrijednost
-                            if (eventDate.getIsPrefered() != null) {
-                                if (eventDate.getIsPrefered()) {
+                            if (eventDate.getPrefered() != null) {
+                                if (eventDate.getPrefered()) {
                                     view.setBackgroundResource(R.drawable.favorite);
                                 } else {
                                     view.setBackgroundResource(R.drawable.no);

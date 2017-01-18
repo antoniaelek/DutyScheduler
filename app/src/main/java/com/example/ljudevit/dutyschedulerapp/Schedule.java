@@ -47,14 +47,6 @@ class Schedule implements Serializable {
         this.weekday = weekday;
     }
 
-    public Boolean getIsPrefered() {
-        return isPrefered;
-    }
-
-    public void setIsPrefered(Boolean isPrefered) {
-        this.isPrefered = isPrefered;
-    }
-
     public String getType() {
         return type;
     }

@@ -43,4 +43,7 @@
     <string name="is_administrator">Is Administrator</string>
     <string name="change_isadmin_value">Change isAdmin value</string>
     <string name="delete_account">Delete account</string>
+    <string name="ask_for_replacement">Traži zamjenu</string>
+    <string name="offer_replacement">Ponudi zamjenu</string>
+    <string name="delete_preference">Obriši odabir</string>
 </resources>

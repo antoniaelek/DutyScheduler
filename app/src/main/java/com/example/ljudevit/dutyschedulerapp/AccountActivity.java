@@ -65,7 +65,7 @@ public class AccountActivity extends AppCompatActivity {
             }
             ListView accounts = (ListView) findViewById(R.id.users_list);
             accounts.setVisibility(View.VISIBLE);
-            AccountsAdapter adapter = new AccountsAdapter(getApplicationContext(), zamjene, cookie, url);
+            AccountsAdapter adapter = new AccountsAdapter(getApplicationContext(), zamjene, cookie, url, accountInfo);
             accounts.setAdapter(adapter);
         }
 

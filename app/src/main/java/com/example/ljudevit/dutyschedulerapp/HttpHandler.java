@@ -168,7 +168,9 @@ class HttpHandler {
             switch (params[0]) {
                 case "changePreference":
                     try {
-                        Boolean isPrefered = params[3].equals("true");
+                        Boolean isPrefered;
+                        if (params[3]==null) isPrefered = null;
+                        else isPrefered = params[3].equals("true");
                         //URL, cookie, isPrefered, date
                         return changePreference(params[1], params[2], isPrefered, params[4]);
                     } catch (JSONException e) {
@@ -208,6 +210,7 @@ class HttpHandler {
         String changePreference(String URL, String cookie, Boolean isPrefered, String date) throws JSONException {
             JSONObject postObject = new JSONObject();
             URL += "/api/Preference";
+
             postObject.put("setPrefered", isPrefered);
             postObject.put("date", date);
             return putResponse(URL, cookie, postObject.toString());
@@ -219,11 +222,16 @@ class HttpHandler {
         }
     }
 
+    String deletePreference(String URL, String cookie, String preferenceID) throws ExecutionException, InterruptedException {
+        return new preference().execute("deletePreference",URL,cookie, preferenceID).get();
+    }
+
     String changePreference(String url, String cookie, Boolean isPrefered, Date date) throws ExecutionException, InterruptedException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         //TODO scheduled prazan bug
         String dateString = formatter.format(date);
-        return new preference().execute("changePreference", url, cookie, isPrefered.toString(), dateString).get();
+        if(isPrefered==null) return new preference().execute("changePreference", url, cookie, null, dateString).get();
+        else return new preference().execute("changePreference", url, cookie, isPrefered.toString(), dateString).get();
     }
 
     private class session extends AsyncTask<String, String, User> {
@@ -254,11 +262,10 @@ class HttpHandler {
             }
             String serviceResponse = putResponse(url, cookie, postObject.toString());
             //seperate cookie and JSON
-            String[] splitter = serviceResponse.split("~");
             User fetchedUser = new User();
-            if (!serviceResponse.contains("Error:") && splitter.length>0) {
+            if (!serviceResponse.contains("Error:")) {
                 try {
-                    JSONObject recivedJson = new JSONObject(splitter[1]);
+                    JSONObject recivedJson = new JSONObject(serviceResponse);
                     fetchedUser.setUsername(recivedJson.getString("username"));
                     fetchedUser.setName(recivedJson.getString("name"));
                     fetchedUser.setSurname(recivedJson.getString("lastName"));
@@ -266,7 +273,6 @@ class HttpHandler {
                     fetchedUser.setPhone(recivedJson.getString("phone"));
                     fetchedUser.setOffice(recivedJson.getString("office"));
                     fetchedUser.setAdmin(recivedJson.getBoolean("isAdmin"));
-                    fetchedUser.setCookie(splitter[0]);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -340,7 +346,7 @@ class HttpHandler {
     }
 
     User changeAdmin(String url, String cookie, String username, Boolean isAdmin) throws ExecutionException, InterruptedException {
-        return new session().execute("changeAdmin",url+"/api/User/"+username, cookie, isAdmin.toString()).get();
+        return new session().execute("changeAdmin",url+"/api/User/admin/"+username, cookie, isAdmin.toString()).get();
     }
 
     User logIn(String url, String username, String password) {
@@ -486,7 +492,7 @@ class HttpHandler {
 
                     //provjeriti prvo jesu možda null
                     if (!child.get("isPrefered").equals(null)) {
-                        singleDate.setIsPrefered(child.getBoolean("isPrefered"));
+                        singleDate.setPrefered(child.getBoolean("isPrefered"));
                     }
                     if (!child.get("isReplaceable").equals(null)) {
                         singleDate.setReplaceable(child.getBoolean("isReplaceable"));
