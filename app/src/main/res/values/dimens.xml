@@ -15,4 +15,5 @@
     <dimen name="account_input_height">30dp</dimen>
     <dimen name="account_input_width">180dp</dimen>
     <dimen name="account_label_width">80dp</dimen>
+    <dimen name="account_min_list_height">250dp</dimen>
 </resources>

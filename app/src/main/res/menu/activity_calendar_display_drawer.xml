@@ -4,15 +4,15 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_calendar"
-            android:title="Kalendar" />
+            android:title="@string/nav_calendar" />
         <item
             android:id="@+id/nav_statistics"
-            android:title="Statistika" />
+            android:title="@string/nav_statistics" />
         <item
             android:id="@+id/nav_account"
-            android:title="Moj račun" />
+            android:title="@string/nav_account" />
         <item
             android:id="@+id/nav_logout"
-            android:title="Odjava" />
+            android:title="@string/nav_logout" />
     </group>
 </menu>

@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 
 public class LogInPreferences extends PreferenceActivity {
 
-    private static final String LOGIN_PREFERENCE_INFO = "logInPreferences";
+    private static final String LOGIN_PREFERENCE_INFO = "appPreferences";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +21,7 @@ public class LogInPreferences extends PreferenceActivity {
             PreferenceManager prefMgr = getPreferenceManager();
             prefMgr.setSharedPreferencesName(LOGIN_PREFERENCE_INFO);
             addPreferencesFromResource(R.xml.login_settings);
+
         }
     }
 }

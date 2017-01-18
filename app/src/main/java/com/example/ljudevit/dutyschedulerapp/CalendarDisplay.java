@@ -3,9 +3,7 @@ package com.example.ljudevit.dutyschedulerapp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -14,7 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
+import android.view.View;
 
 public class CalendarDisplay extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -46,7 +44,7 @@ public class CalendarDisplay extends AppCompatActivity
 
         CalendarView calendar = (CalendarView) findViewById(R.id.calendar_view);
         final View parent = this.findViewById(R.id.calendar_view);
-        calendar.assignValues(hostURL,cookie,logedUser);
+        calendar.assignValues(hostURL,cookie,logedUser,loggedInUser.getAdmin());
     }
 
     @Override
@@ -62,6 +60,7 @@ public class CalendarDisplay extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.calendar_display, menu);
         return true;
     }
@@ -69,7 +68,7 @@ public class CalendarDisplay extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
