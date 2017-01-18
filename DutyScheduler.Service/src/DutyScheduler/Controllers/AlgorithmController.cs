@@ -83,6 +83,9 @@ namespace DutyScheduler.Controllers
 				// loop through sorted dict with preferences - make shifts
 				foreach (KeyValuePair<DateTime, int> item in preferencesForDuty.OrderBy(key => key.Value))
 				{
+                    // check if shift exits 
+				    if (_context.Shift.Any(s => s.Date == item.Key)) continue;
+
 					// check if day is type special
 					special = isSpecial(item.Key);
 
@@ -120,8 +123,15 @@ namespace DutyScheduler.Controllers
 				DateTime currentDate = m.First;
 				while (currentDate <= m.Last)
 				{
-					// exclude all days in holidays, non-working days, dates in preferencesForDuty
-					if (m.Holidays.FirstOrDefault(h => h.Date == currentDate) == default(Holiday) &&
+                    // check if shift exits 
+				    if (_context.Shift.Any(s => s.Date == currentDate))
+				    {
+                        currentDate = currentDate.AddDays(1);
+                        continue;
+				    }
+
+                    // exclude all days in holidays, non-working days, dates in preferencesForDuty
+                    if (m.Holidays.FirstOrDefault(h => h.Date == currentDate) == default(Holiday) &&
 						m.NonWorkingDays.FirstOrDefault(h => h.Date == currentDate) == default(NonWorkingDay) &&
 						!preferencesForDuty.ContainsKey(currentDate))
 					{
