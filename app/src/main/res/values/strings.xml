@@ -16,6 +16,31 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- -->
+    <string name="calendar_header">current date</string>
+    <!-- menu titles -->
+    <string name="nav_calendar">Kalendar</string>
+    <string name="nav_statistics">Statistika</string>
+    <string name="nav_account">Moj račun</string>
+    <string name="nav_logout">Odjava</string>
+    <string name="monday">MON</string>
+    <string name="tuesday">TUE</string>
+    <string name="wednesday">WED</string>
+    <string name="thursday">THU</string>
+    <string name="friday">FRI</string>
+    <string name="saturday">SAT</string>
+    <string name="sunday">SUN</string>
+    <string name="name">Ime:</string>
+    <string name="surname">Prezime:</string>
+    <string name="office">Soba:</string>
+    <string name="phone">Telefon:</string>
+    <string name="update_users_info">Update info</string>
+    <string name="email">Email:</string>
+    <string name="password">Password:</string>
+    <string name="previous_button">Previous button</string>
+    <string name="next_button">Next button</string>
+    <string name="generate_schedule">Generate schedule</string>
+    <string name="is_administrator">Is Administrator</string>
+    <string name="change_isadmin_value">Change isAdmin value</string>
+    <string name="delete_account">Delete account</string>
 </resources>

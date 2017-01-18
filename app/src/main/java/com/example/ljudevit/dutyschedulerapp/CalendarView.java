@@ -1,12 +1,11 @@
 package com.example.ljudevit.dutyschedulerapp;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -19,11 +18,8 @@ import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
-import android.widget.SimpleAdapter;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,7 +32,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
-import static android.content.Context.MODE_PRIVATE;
 
 public class CalendarView extends LinearLayout {
     // for logging
@@ -63,6 +58,7 @@ public class CalendarView extends LinearLayout {
     private ImageView btnNext;
     private TextView txtDate;
     private GridView grid;
+    private ImageButton generate;
 
     //
     private String hostURL;
@@ -70,6 +66,7 @@ public class CalendarView extends LinearLayout {
     private String userName;
     private HashSet<Schedule> currentMonth = new HashSet<>();
     private String cookie;
+    private Boolean isAdmin=false;
 
     public CalendarView(Context context) {
         super(context);
@@ -262,29 +259,11 @@ public class CalendarView extends LinearLayout {
                                         public void onClick(View view) {
                                             try {
                                                 String response = new HttpHandler().requestReplacement(hostURL, cookie, shiftId);
-                                                if (response.contains("Error:")) {
-                                                    String[] spliter = response.split(":");
-                                                    switch (spliter[1]) {
-                                                        case "204":
-                                                            Toast.makeText(getContext(), "No Content.", Toast.LENGTH_LONG);
-                                                            break;
-                                                        case "304":
-                                                            Toast.makeText(getContext(), "Model was empty, nothing happened.", Toast.LENGTH_LONG);
-                                                            break;
-                                                        case "401":
-                                                            Toast.makeText(getContext(), "User is not logged in.", Toast.LENGTH_LONG);
-                                                            break;
-                                                        case "403":
-                                                            Toast.makeText(getContext(), "User does not have the sufficient rights to perform the action.", Toast.LENGTH_LONG);
-                                                            break;
-                                                    }
-                                                } else {
+                                                if (!response.contains("Error:")) {
                                                     traziZamjenu.setClickable(false);
                                                     traziZamjenu.setText("Zahtjev za zamjenom poslan");
                                                 }
-                                            } catch (ExecutionException e) {
-                                                e.printStackTrace();
-                                            } catch (InterruptedException e) {
+                                            } catch (ExecutionException | InterruptedException e) {
                                                 e.printStackTrace();
                                             }
                                         }
@@ -315,10 +294,8 @@ public class CalendarView extends LinearLayout {
                                             try {
 
                                                 new HttpHandler().offerReplacement(hostURL, cookie, shiftId, "");
-                                                Toast.makeText(getContext(), "Ponuda poslana", Toast.LENGTH_LONG);
-                                            } catch (ExecutionException e) {
-                                                e.printStackTrace();
-                                            } catch (InterruptedException e) {
+                                                Toast.makeText(getContext(), "Ponuda poslana", Toast.LENGTH_LONG).show();
+                                            } catch (ExecutionException | InterruptedException e) {
                                                 e.printStackTrace();
                                             }
                                         }
@@ -359,9 +336,7 @@ public class CalendarView extends LinearLayout {
                                                 traziZamjenu.setBackgroundColor(Color.GREEN);
                                                 setBackgroundResource(android.R.drawable.btn_default);
                                                 ponudiZamjenu.setClickable(true);
-                                            } catch (ExecutionException e) {
-                                                e.printStackTrace();
-                                            } catch (InterruptedException e) {
+                                            } catch (ExecutionException | InterruptedException e) {
                                                 e.printStackTrace();
                                             }
                                         }
@@ -383,9 +358,7 @@ public class CalendarView extends LinearLayout {
                                                 ponudiZamjenu.setBackgroundColor(Color.RED);
                                                 traziZamjenu.setBackgroundResource(android.R.drawable.btn_default);
                                                 traziZamjenu.setClickable(true);
-                                            } catch (ExecutionException e) {
-                                                e.printStackTrace();
-                                            } catch (InterruptedException e) {
+                                            } catch (ExecutionException | InterruptedException e) {
                                                 e.printStackTrace();
                                             }
                                         }
@@ -418,10 +391,11 @@ public class CalendarView extends LinearLayout {
     /**
      * Initial params needed for proper functionality
      */
-    public void assignValues(String calURL, String cookie, String userName) {
+    public void assignValues(String calURL, final String cookie, String userName, Boolean isAdmin) {
         this.hostURL = calURL;
         this.today = new Date();
         this.cookie = cookie;
+        this.isAdmin = isAdmin;
         this.userName = userName;
         try {
             currentMonth = new HttpHandler().monthDates(hostURL + "/api/Calendar", cookie
@@ -429,6 +403,23 @@ public class CalendarView extends LinearLayout {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
+        if(isAdmin){
+            generate = (ImageButton) findViewById(R.id.generate_schedule);
+            generate.setVisibility(VISIBLE);
+            generate.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        new HttpHandler().createSchedule(hostURL, cookie,currentDate.getTime());
+                        updateCalendar(currentMonth);
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+
         updateCalendar(currentMonth);
 
     }
@@ -476,14 +467,15 @@ public class CalendarView extends LinearLayout {
         // for view inflation
         private LayoutInflater inflater;
 
-        public CalendarAdapter(Context context, ArrayList<Date> days, HashSet<Schedule> eventDays) {
+        CalendarAdapter(Context context, ArrayList<Date> days, HashSet<Schedule> eventDays) {
             super(context, R.layout.control_calendar_day, days);
             this.eventDays = eventDays;
             inflater = LayoutInflater.from(context);
         }
 
+        @NonNull
         @Override
-        public View getView(int position, View view, ViewGroup parent) {
+        public View getView(int position, View view, @NonNull ViewGroup parent) {
             // day in question
             Date date = getItem(position);
             Calendar dayInQuestion = Calendar.getInstance();
@@ -506,11 +498,8 @@ public class CalendarView extends LinearLayout {
                     int eventMonth = eventCal.get(Calendar.MONTH);
                     int eventYear = eventCal.get(Calendar.YEAR);
                     if (eventDay == day && eventMonth == month && eventYear == year) {
-                        //TODO usporedba int-ova
-                        // mark special days
-                        if (eventDate.getType().equals("holiday")) {
-                            //view.setBackgroundResource(R.drawable.relax);
-                        }
+                        // mark special days if (eventDate.getType().equals("holiday")) {
+
                         //vlastiti shift
                         //nema shift
                         if (eventDate.getScheduled() == null) {

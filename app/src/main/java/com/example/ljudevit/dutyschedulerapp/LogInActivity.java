@@ -1,27 +1,18 @@
 package com.example.ljudevit.dutyschedulerapp;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.concurrent.ExecutionException;
 
 public class LogInActivity extends AppCompatActivity {
 
@@ -71,8 +62,9 @@ public class LogInActivity extends AppCompatActivity {
         signIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                logIn();
+                if(userName.getText().length()>0 && password.getText().length()>0) {
+                    logIn();
+                }
             }
         });
     }
@@ -88,10 +80,10 @@ public class LogInActivity extends AppCompatActivity {
         String usersName = userName.getText().toString();
         String usersPass = password.getText().toString();
 
-        //TODO uhvatiti timeout
-        final String address = logInPref.getString("mainURL","http://192.168.0.28:5000");
+        final String address = logInPref.getString("mainURL","").trim();
+
         User loggedInUser = new HttpHandler().logIn(address,usersName,usersPass);
-        if(loggedInUser.getUsername() != null) {
+        if(loggedInUser != null && loggedInUser.getUsername() != null) {
             loggedInUser.setPassword(usersPass);
             //spremanje login podataka
             SharedPreferences.Editor editor = logInPref.edit();
@@ -119,7 +111,6 @@ public class LogInActivity extends AppCompatActivity {
         else{
             Toast.makeText(getApplicationContext(), "Incorrect username or password!", Toast.LENGTH_SHORT).show();
             //refresh shared prefs
-            logInPref.edit().remove("mainURL").apply();
             logginDialog.hide();
         }
     }

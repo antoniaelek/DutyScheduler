@@ -1,12 +1,16 @@
 package com.example.ljudevit.dutyschedulerapp;
 
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class AccountActivity extends AppCompatActivity {
 
@@ -48,10 +52,22 @@ public class AccountActivity extends AppCompatActivity {
                 accountInfo.setPassword(password.getText().toString());
 
                 new HttpHandler().updateInfo(url,cookie,accountInfo);
-                Toast.makeText(getApplicationContext(),"Podatci uspješno ažurirani",Toast.LENGTH_LONG);
+                Toast.makeText(getApplicationContext(),"Podatci uspješno ažurirani",Toast.LENGTH_LONG).show();
             }
         });
 
+        if(accountInfo.getAdmin()) {
+            List<User> zamjene = null;
+            try {
+                zamjene = new HttpHandler().getUsers(url,cookie);
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+            ListView accounts = (ListView) findViewById(R.id.users_list);
+            accounts.setVisibility(View.VISIBLE);
+            AccountsAdapter adapter = new AccountsAdapter(getApplicationContext(), zamjene, cookie, url);
+            accounts.setAdapter(adapter);
+        }
 
     }
 }

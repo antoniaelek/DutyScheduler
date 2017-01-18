@@ -7,3 +7,12 @@ DutyScheduler.Web/Web/Web/obj/
 *.suo
 DutyScheduler.Web/Web/.vs/
 *.user
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild

@@ -1,24 +1,17 @@
 package com.example.ljudevit.dutyschedulerapp;
 
-import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpURLConnection;
@@ -29,14 +22,13 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 class HttpHandler {
-    //TODO cake is a lie
-
 
     private class replacement extends AsyncTask<String, String, String> {
         @Override
@@ -62,25 +54,25 @@ class HttpHandler {
             return null;
         }
 
-        public void offerReplacement(String URL, String cookie, String shiftId, String date) throws JSONException {
+        void offerReplacement(String URL, String cookie, String shiftId, String date) throws JSONException {
             JSONObject postObject = new JSONObject();
             postObject.put("shiftId", shiftId);
             if (!date.isEmpty()) postObject.put("date", date);
             postResponse(URL + "/api/Replacement", postObject.toString(), cookie);
         }
 
-        public void acceptReplacement(String URL, String cookie, Integer requestId) throws JSONException {
+        void acceptReplacement(String URL, String cookie, Integer requestId) throws JSONException {
             JSONObject postObject = new JSONObject();
             postObject.put("requestId", requestId);
             postResponse(URL + "/api/Replacement/accept", postObject.toString(), cookie);
         }
     }
 
-    public String offerReplacement(String url, String cookie, String shiftId, String date) throws ExecutionException, InterruptedException {
+    String offerReplacement(String url, String cookie, String shiftId, String date) throws ExecutionException, InterruptedException {
         return new replacement().execute(url, cookie, "offerReplacement", shiftId, date).get();
     }
 
-    public String acceptReplacement(String url, String cookie, Integer requestID) throws ExecutionException, InterruptedException {
+    String acceptReplacement(String url, String cookie, Integer requestID) throws ExecutionException, InterruptedException {
         return new replacement().execute(url, cookie, "acceptReplacement", requestID.toString()).get();
     }
 
@@ -108,20 +100,20 @@ class HttpHandler {
             return null;
         }
 
-        public String requestReplacement(String URL, String cookie, String shiftId) throws JSONException {
+        String requestReplacement(String URL, String cookie, String shiftId) throws JSONException {
             JSONObject postObject = new JSONObject();
             URL += "/api/Shift/" + shiftId;
             postObject.put("setReplaceable", true);
             return putResponse(URL, cookie, postObject.toString());
         }
 
-        public String unfinishedShifts(String URL, String cookie, String username) throws JSONException {
+        String unfinishedShifts(String URL, String cookie, String username) throws JSONException {
             URL += "/api/Shift/user" + username+"/undone";
             return getResponse(URL,cookie);
         }
     }
 
-    public String requestReplacement(String URL, String cookie, String shiftId) throws ExecutionException, InterruptedException {
+    String requestReplacement(String URL, String cookie, String shiftId) throws ExecutionException, InterruptedException {
         return new shift().execute(URL,cookie,"requestReplacement",shiftId).get();
     }
 
@@ -130,7 +122,7 @@ class HttpHandler {
      */
     private class offers extends AsyncTask<String, String, List<String>> {
         @Override
-        protected List doInBackground(String... params) {
+        protected List<String> doInBackground(String... params) {
             //URL, cookie, type, shiftId
                     try {
                         //url, cookie, username
@@ -152,15 +144,13 @@ class HttpHandler {
                             }
                         }
                         return response;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
+                    } catch (JSONException | ParseException e) {
                         e.printStackTrace();
                     }
             return null;
         }
 
-        public String unfinishedShifts(String URL, String cookie, String username) throws JSONException {
+        String unfinishedShifts(String URL, String cookie, String username) throws JSONException {
             URL += "/api/Shift/user" + username+"/undone";
             return getResponse(URL,cookie);
         }
@@ -193,11 +183,29 @@ class HttpHandler {
                         e.printStackTrace();
                     }
                     break;
+                case "deleteAccount":
+                    try {
+                        return deleteAccount(params[1], params[2], params[3]);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "algorithm":
+                    return createSchedule(params[1], params[2], params[3],params[4]);
             }
             return null;
         }
 
-        public String changePreference(String URL, String cookie, Boolean isPrefered, String date) throws JSONException {
+        String createSchedule(String URL, String cookie, String year, String month){
+            URL += "/api/Algorithm/year="+year+"&month=" +month;
+            return getResponse(URL, cookie);
+        }
+        String deleteAccount(String URL, String cookie, String username) throws JSONException {
+            URL += "/api/User/" + username;
+            return deleteResponse(URL, cookie);
+        }
+
+        String changePreference(String URL, String cookie, Boolean isPrefered, String date) throws JSONException {
             JSONObject postObject = new JSONObject();
             URL += "/api/Preference";
             postObject.put("setPrefered", isPrefered);
@@ -205,13 +213,13 @@ class HttpHandler {
             return putResponse(URL, cookie, postObject.toString());
         }
 
-        public String deletePreference(String URL, String cookie, String preferenceId) throws JSONException {
+        String deletePreference(String URL, String cookie, String preferenceId) throws JSONException {
             URL += "/api/Preference/" + preferenceId;
             return deleteResponse(URL, cookie);
         }
     }
 
-    public String changePreference(String url, String cookie, Boolean isPrefered, Date date) throws ExecutionException, InterruptedException {
+    String changePreference(String url, String cookie, Boolean isPrefered, Date date) throws ExecutionException, InterruptedException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         //TODO scheduled prazan bug
         String dateString = formatter.format(date);
@@ -227,16 +235,46 @@ class HttpHandler {
                 case "updateInfo":
                     try {
                         return updateInfo(params[1],params[2],params[3],params[4],params[5],params[6],params[7],params[8]);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
+                    } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
+                    break;
+                case "changeAdmin":
+                    return changeAdmin(params[1],params[2],params[3]);
             }
             return null;
         }
 
-        public User logIn(String url, String username, String password){
+        User changeAdmin (String url, String cookie, String isAdmin){
+            JSONObject postObject = new JSONObject();
+            try {
+                postObject.put("setAdmin", isAdmin.equals("true"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            String serviceResponse = putResponse(url, cookie, postObject.toString());
+            //seperate cookie and JSON
+            String[] splitter = serviceResponse.split("~");
+            User fetchedUser = new User();
+            if (!serviceResponse.contains("Error:") && splitter.length>0) {
+                try {
+                    JSONObject recivedJson = new JSONObject(splitter[1]);
+                    fetchedUser.setUsername(recivedJson.getString("username"));
+                    fetchedUser.setName(recivedJson.getString("name"));
+                    fetchedUser.setSurname(recivedJson.getString("lastName"));
+                    fetchedUser.setEmail(recivedJson.getString("email"));
+                    fetchedUser.setPhone(recivedJson.getString("phone"));
+                    fetchedUser.setOffice(recivedJson.getString("office"));
+                    fetchedUser.setAdmin(recivedJson.getBoolean("isAdmin"));
+                    fetchedUser.setCookie(splitter[0]);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return fetchedUser;
+        }
+
+        User logIn(String url, String username, String password){
             JSONObject postObject = new JSONObject();
             try {
                 if (username.contains("@")) {
@@ -248,11 +286,11 @@ class HttpHandler {
             }
             String serviceResponse = postResponse(url, postObject.toString(), "");
             //seperate cookie and JSON
-            String[] spliter = serviceResponse.split(" JSONresponseObject ");
+            String[] splitter = serviceResponse.split("~");
             User fetchedUser = new User();
-            if (!serviceResponse.contains("Error:")) {
+            if (!serviceResponse.contains("Error:") && splitter.length>0) {
                 try {
-                    JSONObject recivedJson = new JSONObject(spliter[1]);
+                    JSONObject recivedJson = new JSONObject(splitter[1]);
                     fetchedUser.setUsername(recivedJson.getString("username"));
                     fetchedUser.setName(recivedJson.getString("name"));
                     fetchedUser.setSurname(recivedJson.getString("lastName"));
@@ -260,7 +298,7 @@ class HttpHandler {
                     fetchedUser.setPhone(recivedJson.getString("phone"));
                     fetchedUser.setOffice(recivedJson.getString("office"));
                     fetchedUser.setAdmin(recivedJson.getBoolean("isAdmin"));
-                    fetchedUser.setCookie(spliter[0]);
+                    fetchedUser.setCookie(splitter[0]);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -268,7 +306,7 @@ class HttpHandler {
             return fetchedUser;
         }
 
-        public User updateInfo(String url, String cookie, String name, String lastName, String office, String phone, String email, String password) throws IOException, ClassNotFoundException {
+        User updateInfo(String url, String cookie, String name, String lastName, String office, String phone, String email, String password) throws IOException, ClassNotFoundException {
             JSONObject postObject = new JSONObject();
             try {
                 postObject.put("name", name );
@@ -299,6 +337,10 @@ class HttpHandler {
             }
             return fetchedUser;
         }
+    }
+
+    User changeAdmin(String url, String cookie, String username, Boolean isAdmin) throws ExecutionException, InterruptedException {
+        return new session().execute("changeAdmin",url+"/api/User/"+username, cookie, isAdmin.toString()).get();
     }
 
     User logIn(String url, String username, String password) {
@@ -349,7 +391,6 @@ class HttpHandler {
                 statistics.add(o.toString());
                 statistics.add(s.toString());
                 statistics.add(t.toString());
-                t=0;
                 s=0;
                 o=0;
                 for (int i = 0; i < byMe.length(); i++) {
@@ -366,7 +407,6 @@ class HttpHandler {
                 statistics.add(o.toString());
                 statistics.add(s.toString());
                 statistics.add(t.toString());
-                t=0;
                 s=0;
                 o=0;
                 for (int i = 0; i < forMe.length(); i++) {
@@ -391,9 +431,38 @@ class HttpHandler {
         }
     }
 
-    public List<String> statistics(String url, String cookie) throws ExecutionException, InterruptedException {
+    List<String> statistics(String url, String cookie) throws ExecutionException, InterruptedException {
         return new statistics().execute(url+"/api/Statistics", cookie).get();
     }
+
+    private class users extends AsyncTask<String, String, List<User>> {
+
+        @Override
+        protected List<User> doInBackground(String... params) {
+            List<User> accounts = new ArrayList<>();
+            String serviceResponse = getResponse(params[0], params[1]);
+            try {
+                JSONArray root = new JSONArray(serviceResponse);
+                for (int i = 0; i < root.length(); i++) {
+                    JSONObject child = root.getJSONObject(i);
+                    User user = new User();
+                    user.setUsername(child.getString("username"));
+                    user.setAdmin(child.getBoolean("isAdmin"));
+                    user.setName(child.getString("name"));
+                    user.setSurname(child.getString("lastName"));
+                    accounts.add(user);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return accounts;
+        }
+    }
+
+    List<User> getUsers(String url, String cookie) throws ExecutionException, InterruptedException {
+        return new users().execute(url+"/api/User", cookie).get();
+    }
+
     private class monthData extends AsyncTask<String, String, HashSet<Schedule>> {
 
         @Override
@@ -470,13 +539,23 @@ class HttpHandler {
 
                     monthsSchedule.add(singleDate);
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
+            } catch (JSONException | ParseException e) {
                 e.printStackTrace();
             }
             return monthsSchedule;
         }
+    }
+
+    String createSchedule(String url, String cookie, Date date) throws ExecutionException, InterruptedException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        Integer year=cal.get(Calendar.YEAR);
+        Integer month = cal.get(Calendar.MONTH)+1;
+        return new preference().execute("algorithm",url,cookie,year.toString(),month.toString()).get();
+    }
+
+    String deleteAccount(String url, String cookie, String username) throws ExecutionException, InterruptedException {
+        return new preference().execute("deleteAccount", url, cookie,username).get();
     }
 
     HashSet<Schedule> monthDates(String url, String cookie, Integer month, Integer year) throws ExecutionException, InterruptedException {
@@ -484,10 +563,8 @@ class HttpHandler {
         return new monthData().execute(query, cookie).get();
     }
 
-
-    public String postResponse(String urlString, String body, String cookie) {
+    private String postResponse(String urlString, String body, String cookie) {
         HttpURLConnection urlConnection;
-        BufferedWriter writer;
         String JSONstring = "";
 
         try {
@@ -506,13 +583,9 @@ class HttpHandler {
             urlConnection.setConnectTimeout(5000);
             urlConnection.setReadTimeout(5000);
             urlConnection.setDoOutput(true);
-            urlConnection.setDoInput(true);
 
-            writer = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()));
+            urlConnection.getOutputStream().write(body.getBytes("UTF-8"));
 
-            writer.write(body);
-            writer.flush();
-            writer.close();
 
             int responseCode = urlConnection.getResponseCode();
 
@@ -535,22 +608,18 @@ class HttpHandler {
                 }
                 reader.close();
 
-                JSONstring = cookieString + " JSONresponseObject " + response.toString();
+                JSONstring = cookieString + "~" + response.toString();
             } else {
                 JSONstring = "Error:" + responseCode;
             }
 
-        } catch (ProtocolException | MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
         return JSONstring;
     }
 
-    public String getResponse(String urlString, String cookie) {
+    private String getResponse(String urlString, String cookie) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String JSONstring = "";
@@ -596,7 +665,7 @@ class HttpHandler {
         return JSONstring;
     }
 
-    public String deleteResponse(String urlString, String cookie) {
+    private String deleteResponse(String urlString, String cookie) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         String JSONstring = "";
@@ -643,7 +712,7 @@ class HttpHandler {
         return JSONstring;
     }
 
-    public String putResponse(String urlString, String cookie, String body) {
+    private String putResponse(String urlString, String cookie, String body) {
         HttpURLConnection urlConnection;
         BufferedWriter writer;
         String JSONstring = "";
@@ -684,8 +753,6 @@ class HttpHandler {
                 JSONstring = "Error:" + responseCode;
             }
 
-        } catch (ProtocolException | MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
